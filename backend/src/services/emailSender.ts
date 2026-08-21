@@ -370,19 +370,29 @@ export async function sendTransactionalSystemEmail(options: {
 }): Promise<SendResult> {
   const { recipientEmail, subject, htmlContent, textContent } = options;
 
-  const smtpUser = process.env.SMTP_USER || process.env.SYSTEM_SMTP_USER;
-  const smtpPass = process.env.SMTP_PASS || process.env.SYSTEM_SMTP_PASS;
+  const smtpUser = (process.env.SMTP_USER || process.env.SYSTEM_SMTP_USER || '').trim();
+  const rawSmtpPass = process.env.SMTP_PASS || process.env.SYSTEM_SMTP_PASS || '';
+  const smtpPass = rawSmtpPass.replace(/\s+/g, ''); // Strip any spaces from Google App Password (e.g. "abcd efgh ijkl mnop" -> "abcdefghijklmnop")
   const smtpHost = process.env.SMTP_HOST || 'smtp.gmail.com';
   const smtpPort = Number(process.env.SMTP_PORT) || 587;
 
   if (smtpUser && smtpPass) {
     try {
-      const transporter = nodemailer.createTransport({
-        host: smtpHost,
-        port: smtpPort,
-        secure: smtpPort === 465,
-        auth: { user: smtpUser, pass: smtpPass },
-      });
+      const isGmail = smtpHost.includes('gmail');
+      const transportConfig: any = isGmail
+        ? {
+            service: 'gmail',
+            auth: { user: smtpUser, pass: smtpPass },
+          }
+        : {
+            host: smtpHost,
+            port: smtpPort,
+            secure: smtpPort === 465,
+            auth: { user: smtpUser, pass: smtpPass },
+            tls: { rejectUnauthorized: false },
+          };
+
+      const transporter = nodemailer.createTransport(transportConfig);
 
       const info = await transporter.sendMail({
         from: `"The Mailling Company" <${smtpUser}>`,
@@ -395,7 +405,7 @@ export async function sendTransactionalSystemEmail(options: {
       console.log(`📧 [Transactional Mailer Success]: Sent "${subject}" to ${recipientEmail} via SMTP (MessageId: ${info.messageId})`);
       return { success: true, messageId: info.messageId };
     } catch (err: any) {
-      console.warn(`⚠️ [Transactional Mailer SMTP Error]: ${err?.message || err}`);
+      console.error(`❌ [Transactional Mailer SMTP Error]:`, err?.message || err);
     }
   }
 
