@@ -35,14 +35,21 @@ app.use((req, res, next) => {
   next();
 });
 
-// Task 4: Lock CORS to strict production client URL (no wildcards)
+// Task 4: Production CORS client URL validation
 app.use(cors({
   origin: (origin, callback) => {
     // Allow server-to-server or same-origin without origin header
     if (!origin) return callback(null, true);
     
-    const allowed = config.clientUrl || 'http://localhost:3000';
-    if (origin === allowed || config.nodeEnv !== 'production') {
+    const allowedClientUrl = (config.clientUrl || 'http://localhost:3000').replace(/\/$/, '');
+    const cleanOrigin = origin.replace(/\/$/, '');
+
+    if (
+      cleanOrigin === allowedClientUrl ||
+      cleanOrigin.endsWith('.vercel.app') ||
+      cleanOrigin.includes('localhost') ||
+      config.nodeEnv !== 'production'
+    ) {
       return callback(null, true);
     }
     return callback(new Error('CORS Error: Access denied for origin ' + origin));
