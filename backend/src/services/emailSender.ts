@@ -372,17 +372,22 @@ export async function sendTransactionalSystemEmail(options: {
 
   const smtpUser = (process.env.SMTP_USER || process.env.SYSTEM_SMTP_USER || '').trim();
   const rawSmtpPass = process.env.SMTP_PASS || process.env.SYSTEM_SMTP_PASS || '';
-  const smtpPass = rawSmtpPass.replace(/\s+/g, ''); // Strip any spaces from Google App Password (e.g. "abcd efgh ijkl mnop" -> "abcdefghijklmnop")
+  const smtpPass = rawSmtpPass.replace(/\s+/g, '');
   const smtpHost = process.env.SMTP_HOST || 'smtp.gmail.com';
   const smtpPort = Number(process.env.SMTP_PORT) || 587;
+
+  console.log(`🔍 [Transactional Mailer Check]: SMTP_USER="${smtpUser ? smtpUser : 'NOT SET'}", PassLength=${smtpPass.length}`);
 
   if (smtpUser && smtpPass) {
     try {
       const isGmail = smtpHost.includes('gmail');
       const transportConfig: any = isGmail
         ? {
-            service: 'gmail',
+            host: 'smtp.gmail.com',
+            port: 465,
+            secure: true,
             auth: { user: smtpUser, pass: smtpPass },
+            tls: { rejectUnauthorized: false },
           }
         : {
             host: smtpHost,
@@ -405,8 +410,30 @@ export async function sendTransactionalSystemEmail(options: {
       console.log(`📧 [Transactional Mailer Success]: Sent "${subject}" to ${recipientEmail} via SMTP (MessageId: ${info.messageId})`);
       return { success: true, messageId: info.messageId };
     } catch (err: any) {
-      console.error(`❌ [Transactional Mailer SMTP Error]:`, err?.message || err);
+      console.error(`❌ [Transactional Mailer Primary Transport Error]:`, err?.message || err);
+      try {
+        const fallbackTransporter = nodemailer.createTransport({
+          host: 'smtp.gmail.com',
+          port: 587,
+          secure: false,
+          auth: { user: smtpUser, pass: smtpPass },
+          tls: { rejectUnauthorized: false },
+        });
+        const fallbackInfo = await fallbackTransporter.sendMail({
+          from: `"The Mailling Company" <${smtpUser}>`,
+          to: recipientEmail,
+          subject,
+          html: htmlContent,
+          text: textContent,
+        });
+        console.log(`📧 [Transactional Mailer Fallback 587 Success]: Sent to ${recipientEmail} (MessageId: ${fallbackInfo.messageId})`);
+        return { success: true, messageId: fallbackInfo.messageId };
+      } catch (fallbackErr: any) {
+        console.error(`❌ [Transactional Mailer Fallback Error]:`, fallbackErr?.message || fallbackErr);
+      }
     }
+  } else {
+    console.warn(`⚠️ [Transactional Mailer Notice]: SMTP_USER or SMTP_PASS is missing in Railway environment variables.`);
   }
 
   const awsKey = process.env.AWS_ACCESS_KEY_ID;

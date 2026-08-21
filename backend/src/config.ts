@@ -2,8 +2,8 @@ import dotenv from 'dotenv';
 import path from 'path';
 
 const rootDir = path.resolve(process.cwd());
-dotenv.config({ path: path.join(rootDir, '.env'), override: true });
-dotenv.config({ path: path.join(rootDir, '../.env'), override: true });
+dotenv.config({ path: path.join(rootDir, '.env'), override: false });
+dotenv.config({ path: path.join(rootDir, '../.env'), override: false });
 
 const isProd = (process.env.NODE_ENV || 'development') === 'production';
 
