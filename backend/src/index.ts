@@ -21,24 +21,23 @@ app.set('trust proxy', 1);
 // Task 2: Production HTTPS & Security Headers Middleware
 app.use((req, res, next) => {
   if (config.nodeEnv === 'production') {
-    // HSTS (HTTP Strict Transport Security) header
     res.setHeader('Strict-Transport-Security', 'max-age=31536000; includeSubDomains; preload');
     res.setHeader('X-Content-Type-Options', 'nosniff');
     res.setHeader('X-Frame-Options', 'DENY');
     res.setHeader('X-XSS-Protection', '1; mode=block');
 
-    // Force HTTPS redirect if forwarded via HTTP
-    if (req.headers['x-forwarded-proto'] && req.headers['x-forwarded-proto'] !== 'https') {
+    // Force HTTPS redirect if forwarded via HTTP (skip OPTIONS preflight)
+    if (req.method !== 'OPTIONS' && req.headers['x-forwarded-proto'] && req.headers['x-forwarded-proto'] !== 'https') {
       return res.redirect(301, `https://${req.headers.host}${req.url}`);
     }
   }
   next();
 });
 
-// Task 4: Production CORS client URL validation
+// Task 4: Production CORS client URL & preflight OPTIONS validation
 app.use(cors({
   origin: (origin, callback) => {
-    // Allow server-to-server or same-origin without origin header
+    // Allow non-browser / same-origin without origin header
     if (!origin) return callback(null, true);
     
     const allowedClientUrl = (config.clientUrl || 'http://localhost:3000').replace(/\/$/, '');
@@ -52,10 +51,15 @@ app.use(cors({
     ) {
       return callback(null, true);
     }
-    return callback(new Error('CORS Error: Access denied for origin ' + origin));
+    return callback(null, false);
   },
   credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'Accept', 'Cookie'],
+  optionsSuccessStatus: 200,
 }));
+
+app.options('*', cors());
 
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
