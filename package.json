@@ -6,7 +6,8 @@
     "dev": "concurrently \"npm run dev --workspace=backend\" \"npm run dev --workspace=frontend\"",
     "build": "npm run build --workspace=shared && npm run build --workspace=backend && npm run build --workspace=frontend",
     "prisma:generate": "npm run prisma:generate --workspace=backend",
-    "prisma:db-push": "npm run prisma:db-push --workspace=backend"
+    "prisma:db-push": "npm run prisma:db-push --workspace=backend",
+    "prisma:migrate:prod": "npm run prisma:migrate:prod --workspace=backend"
   },
   "workspaces": [
     "shared",
