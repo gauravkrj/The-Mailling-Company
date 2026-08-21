@@ -370,7 +370,40 @@ export async function sendTransactionalSystemEmail(options: {
 }): Promise<SendResult> {
   const { recipientEmail, subject, htmlContent, textContent } = options;
 
-  // 1. Check Resend API (HTTPS Port 443 - Never blocked on Railway)
+  // 1. Check Brevo API (HTTPS Port 443 - 300 free emails/day to ANY recipient)
+  const brevoApiKey = process.env.BREVO_API_KEY;
+  if (brevoApiKey) {
+    try {
+      const res = await fetch('https://api.brevo.com/v3/smtp/email', {
+        method: 'POST',
+        headers: {
+          'api-key': brevoApiKey,
+          'accept': 'application/json',
+          'content-type': 'application/json',
+        },
+        body: JSON.stringify({
+          sender: {
+            name: 'The Mailling Company',
+            email: process.env.BREVO_SENDER_EMAIL || process.env.SMTP_USER || 'themaillingcompany@gmail.com',
+          },
+          to: [{ email: recipientEmail }],
+          subject,
+          htmlContent,
+          textContent,
+        }),
+      });
+      const data: any = await res.json();
+      if (res.ok && data.messageId) {
+        console.log(`📧 [Brevo API Success]: Sent "${subject}" to ${recipientEmail} (MessageId: ${data.messageId})`);
+        return { success: true, messageId: data.messageId };
+      }
+      console.warn(`⚠️ [Brevo API Notice]:`, data);
+    } catch (err: any) {
+      console.warn(`⚠️ [Brevo API Error]:`, err?.message || err);
+    }
+  }
+
+  // 2. Check Resend API (HTTPS Port 443 - Testing mode limited to account owner email)
   const resendApiKey = process.env.RESEND_API_KEY;
   if (resendApiKey) {
     try {
