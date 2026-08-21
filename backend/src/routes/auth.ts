@@ -246,11 +246,14 @@ router.get('/google/callback', async (req, res) => {
           update: {
             name: googleUser.name || null,
             google_id: googleUser.id || null,
+            is_email_verified: true,
+            terms_accepted_at: new Date(),
           },
           create: {
             email: googleUser.email,
             name: googleUser.name || null,
             google_id: googleUser.id || null,
+            is_email_verified: true,
             terms_accepted_at: new Date(),
           },
         });
@@ -265,6 +268,8 @@ router.get('/google/callback', async (req, res) => {
         name: googleUser.name || 'Google User',
         google_id: googleUser.id || undefined,
       });
+      user.is_email_verified = true;
+      user.terms_accepted_at = new Date().toISOString();
     }
 
     const sessionToken = jwt.sign(
@@ -721,6 +726,7 @@ router.get('/me', requireAuth, async (req: AuthenticatedRequest, res) => {
           id: dbUser.id,
           email: dbUser.email,
           name: dbUser.name,
+          google_id: dbUser.google_id,
           company_website: dbUser.company_website,
           is_email_verified: dbUser.is_email_verified,
           terms_accepted_at: dbUser.terms_accepted_at ? dbUser.terms_accepted_at.toISOString() : null,
@@ -733,6 +739,7 @@ router.get('/me', requireAuth, async (req: AuthenticatedRequest, res) => {
     const memUser = memoryUserStore.get(fullUser.id);
     fullUser = {
       ...fullUser,
+      google_id: memUser.google_id || fullUser.google_id || null,
       company_website: memUser?.company_website || fullUser?.company_website,
       is_email_verified: memUser?.is_email_verified ?? fullUser?.is_email_verified,
       terms_accepted_at: memUser?.terms_accepted_at || fullUser?.terms_accepted_at || null,

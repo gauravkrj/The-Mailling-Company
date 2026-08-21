@@ -15,8 +15,8 @@ export default function TermsConsentModal({ user, onConsentGiven }: TermsConsent
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  // Do not show consent modal if user accepted, or if user is viewing legal routes
-  if (user.terms_accepted_at || location.pathname === '/privacy' || location.pathname === '/terms') {
+  // Do not show consent modal if user accepted, signed up via Google, or if user is viewing legal routes
+  if (user.terms_accepted_at || user.google_id || location.pathname === '/privacy' || location.pathname === '/terms') {
     return null;
   }
 
