@@ -9,7 +9,7 @@
     "preview": "vite preview"
   },
   "dependencies": {
-    "@mailpersonalize/shared": "*",
+    "@mailpersonalize/shared": "file:../shared",
     "clsx": "^2.1.1",
     "framer-motion": "^13.1.1",
     "gsap": "^3.15.0",
