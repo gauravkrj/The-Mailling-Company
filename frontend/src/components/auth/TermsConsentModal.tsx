@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { useLocation } from 'react-router-dom';
 import { ShieldCheck, CheckCircle2, AlertCircle } from 'lucide-react';
 import { User } from '@mailpersonalize/shared';
+import { apiFetch } from '../../config';
 
 interface TermsConsentModalProps {
   user: User;
@@ -29,7 +30,7 @@ export default function TermsConsentModal({ user, onConsentGiven }: TermsConsent
     setError(null);
 
     try {
-      const res = await fetch('/api/user/consent', {
+      const res = await apiFetch('/api/user/consent', {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
       });

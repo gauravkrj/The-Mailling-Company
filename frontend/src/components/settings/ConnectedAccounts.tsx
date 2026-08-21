@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Mail, Plus, Trash2, CheckCircle2, ShieldCheck, Server, Cloud, ArrowLeft, Key, Lock, Info, X } from 'lucide-react';
 import { SendingAccount } from '@mailpersonalize/shared';
+import { apiFetch } from '../../config';
 
 interface ConnectedAccountsProps {
   isOpen?: boolean;
@@ -25,7 +26,7 @@ export default function ConnectedAccounts({ isOpen = true, onClose }: ConnectedA
     setLoading(true);
     setError(null);
     try {
-      const res = await fetch('/api/accounts');
+      const res = await apiFetch('/api/accounts');
       if (res.ok) {
         const data = await res.json();
         if (data.success && Array.isArray(data.accounts)) {
@@ -42,7 +43,7 @@ export default function ConnectedAccounts({ isOpen = true, onClose }: ConnectedA
   const handleDisconnect = async (accountId: string) => {
     setDisconnectingId(accountId);
     try {
-      const res = await fetch(`/api/accounts/${accountId}`, {
+      const res = await apiFetch(`/api/accounts/${accountId}`, {
         method: 'DELETE',
       });
       if (res.ok) {

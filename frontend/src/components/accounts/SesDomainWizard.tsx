@@ -4,6 +4,7 @@ import {
   ArrowRight, ArrowLeft, ExternalLink, HelpCircle, Server, FileText, Lock
 } from 'lucide-react';
 import { DnsRecordItem, SesDomainVerificationResult, SesStatusCheckResult } from '@mailpersonalize/shared';
+import { apiFetch } from '../../config';
 
 interface SesDomainWizardProps {
   isOpen: boolean;
@@ -72,7 +73,7 @@ export default function SesDomainWizard({ isOpen, onClose, onSuccess }: SesDomai
     setLoading(true);
 
     try {
-      const res = await fetch('/api/accounts/ses/verify-domain', {
+      const res = await apiFetch('/api/accounts/ses/verify-domain', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -103,7 +104,7 @@ export default function SesDomainWizard({ isOpen, onClose, onSuccess }: SesDomai
     setError(null);
 
     try {
-      const res = await fetch('/api/accounts/ses/check-status', {
+      const res = await apiFetch('/api/accounts/ses/check-status', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -138,7 +139,7 @@ export default function SesDomainWizard({ isOpen, onClose, onSuccess }: SesDomai
     setError(null);
 
     try {
-      const res = await fetch('/api/accounts/ses/save-domain-account', {
+      const res = await apiFetch('/api/accounts/ses/save-domain-account', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({

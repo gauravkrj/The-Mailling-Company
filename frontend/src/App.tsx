@@ -20,6 +20,7 @@ import PrivacyPolicyView from './components/legal/PrivacyPolicyView';
 import TermsOfServiceView from './components/legal/TermsOfServiceView';
 import TermsConsentModal from './components/auth/TermsConsentModal';
 import SupportBubble from './components/common/SupportBubble';
+import { API_BASE, apiFetch } from './config';
 
 export default function App() {
   const navigate = useNavigate();
@@ -64,7 +65,7 @@ export default function App() {
   const checkAuthSession = async () => {
     setLoading(true);
     try {
-      const res = await fetch('/api/auth/me');
+      const res = await apiFetch('/api/auth/me');
       if (res.ok) {
         const data: AuthStatusResponse = await res.json();
         if (data.authenticated && data.user) {
@@ -83,13 +84,13 @@ export default function App() {
   };
 
   const handleGoogleSignIn = () => {
-    window.location.href = '/api/auth/google';
+    window.location.href = `${API_BASE}/api/auth/google`;
   };
 
   const handleDemoSignIn = async () => {
     setLoading(true);
     try {
-      const res = await fetch('/api/auth/demo', { method: 'POST' });
+      const res = await apiFetch('/api/auth/demo', { method: 'POST' });
       const data = await res.json();
       if (data.success) {
         setUser(data.user);
@@ -105,7 +106,7 @@ export default function App() {
 
   const handleLogout = async () => {
     try {
-      await fetch('/api/auth/logout', { method: 'POST' });
+      await apiFetch('/api/auth/logout', { method: 'POST' });
       setUser(null);
       navigate('/login');
     } catch (e) {

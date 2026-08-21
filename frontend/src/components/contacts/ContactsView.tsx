@@ -3,6 +3,8 @@ import {
   Users, Search, Download, Trash2, Ban, Eye, RefreshCw, X, CheckCircle2, ShieldAlert, Filter, ChevronRight, Mail, Calendar, Hash
 } from 'lucide-react';
 
+import { API_BASE, apiFetch } from '../../config';
+
 interface ContactDirectoryItem {
   id: string;
   email: string;
@@ -58,7 +60,7 @@ export default function ContactsView() {
       if (statusFilter !== 'all') params.append('status', statusFilter);
       if (search.trim()) params.append('search', search.trim());
 
-      const res = await fetch(`/api/contacts/directory?${params.toString()}`);
+      const res = await apiFetch(`/api/contacts/directory?${params.toString()}`);
       const data = await res.json();
 
       if (res.ok && data.success) {
@@ -82,7 +84,7 @@ export default function ContactsView() {
     const params = new URLSearchParams();
     if (statusFilter !== 'all') params.append('status', statusFilter);
     if (searchQuery.trim()) params.append('search', searchQuery.trim());
-    window.open(`/api/contacts/directory/export-csv?${params.toString()}`, '_blank');
+    window.open(`${API_BASE}/api/contacts/directory/export-csv?${params.toString()}`, '_blank');
   };
 
   const handleViewDetail = async (contact: ContactDirectoryItem) => {
@@ -90,7 +92,7 @@ export default function ContactsView() {
     setLoadingDetails(true);
     setContactDetailLog(null);
     try {
-      const res = await fetch(`/api/contacts/directory/${contact.id}`);
+      const res = await apiFetch(`/api/contacts/directory/${contact.id}`);
       const data = await res.json();
       if (res.ok && data.success) {
         setContactDetailLog({
@@ -125,7 +127,7 @@ export default function ContactsView() {
     if (!suppressTarget) return;
     setSubmittingAction(true);
     try {
-      const res = await fetch('/api/contacts/directory/suppress', {
+      const res = await apiFetch('/api/contacts/directory/suppress', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -154,7 +156,7 @@ export default function ContactsView() {
     if (!deleteTarget) return;
     setSubmittingAction(true);
     try {
-      const res = await fetch('/api/contacts/directory/delete', {
+      const res = await apiFetch('/api/contacts/directory/delete', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({

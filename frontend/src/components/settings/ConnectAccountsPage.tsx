@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { Mail, ArrowLeft, CheckCircle2, Server, Cloud, Key, Lock, Info } from 'lucide-react';
 import SesDomainWizard from '../accounts/SesDomainWizard';
 import SendingDecisionHelper from '../common/SendingDecisionHelper';
+import { API_BASE, apiFetch } from '../../config';
 
 type ProviderType = 'select' | 'google' | 'smtp' | 'ses';
 
@@ -44,7 +45,7 @@ export default function ConnectAccountsPage() {
   const [recommendedProvider, setRecommendedProvider] = useState<'google' | 'smtp' | 'ses' | null>(null);
 
   const handleConnectGoogle = () => {
-    window.location.href = '/api/accounts/google/connect';
+    window.location.href = `${API_BASE}/api/accounts/google/connect`;
   };
 
   const handleSmtpSubmit = async (e: React.FormEvent) => {
@@ -56,7 +57,7 @@ export default function ConnectAccountsPage() {
     setSuccessMsg(null);
 
     try {
-      const res = await fetch('/api/accounts/smtp', {
+      const res = await apiFetch('/api/accounts/smtp', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -64,17 +65,18 @@ export default function ConnectAccountsPage() {
           app_password: smtpPassword,
           smtp_host: smtpHost,
           smtp_port: Number(smtpPort),
+          secure: smtpPort === 465,
         }),
       });
       const data = await res.json();
       if (!res.ok || !data.success) {
-        setError(data.error || 'Failed to connect SMTP account. Check host & credentials.');
+        setError(data.error || 'Failed to verify SMTP credentials.');
       } else {
-        setSuccessMsg(`Successfully connected ${smtpEmail}!`);
-        setTimeout(() => navigate('/accounts'), 1500);
+        setSuccessMsg('SMTP Sending Account connected successfully!');
+        setTimeout(() => navigate('/settings'), 1200);
       }
     } catch (err: any) {
-      setError('An error occurred connecting your SMTP server.');
+      setError('An error occurred while connecting SMTP account.');
     } finally {
       setSubmitting(false);
     }
@@ -89,7 +91,7 @@ export default function ConnectAccountsPage() {
     setSuccessMsg(null);
 
     try {
-      const res = await fetch('/api/accounts/ses', {
+      const res = await apiFetch('/api/accounts/ses', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({

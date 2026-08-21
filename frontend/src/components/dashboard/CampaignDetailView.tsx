@@ -6,6 +6,7 @@ import {
   FileText, Copy, Check, X, Sparkles
 } from 'lucide-react';
 import { CampaignDetailAnalytics, ContactSendLogDetail } from '@mailpersonalize/shared';
+import { API_BASE, apiFetch } from '../../config';
 
 interface CampaignDetailViewProps {
   campaignId?: string;
@@ -45,7 +46,7 @@ export default function CampaignDetailView({ campaignId: propCampaignId, onBack 
       status: statusFilter,
     }).toString();
 
-    fetch(`/api/analytics/${activeCampaignId}/analytics?${query}`)
+    apiFetch(`/api/analytics/${activeCampaignId}/analytics?${query}`)
       .then((res) => res.json())
       .then((resData) => {
         if (resData.success && resData.data) {
@@ -77,7 +78,7 @@ export default function CampaignDetailView({ campaignId: propCampaignId, onBack 
   }, [data?.campaign.status]);
 
   const handleExportCSV = () => {
-    window.open(`/api/analytics/${activeCampaignId}/export-csv`, '_blank');
+    window.open(`${API_BASE}/api/analytics/${activeCampaignId}/export-csv`, '_blank');
   };
 
   const handleOpenSentEmailModal = async (log: ContactSendLogDetail) => {
@@ -95,7 +96,7 @@ export default function CampaignDetailView({ campaignId: propCampaignId, onBack 
     setFetchingLogContent(true);
     try {
       const targetId = log.contactId || log.id;
-      const res = await fetch(`/api/analytics/${activeCampaignId}/contact-log/${targetId}`);
+      const res = await apiFetch(`/api/analytics/${activeCampaignId}/contact-log/${targetId}`);
       const resData = await res.json();
       if (resData.success && resData.log) {
         setModalLogDetails({

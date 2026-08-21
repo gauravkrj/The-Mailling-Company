@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { Send, Mail, Lock, User as UserIcon, Globe, ArrowRight, Check, AlertCircle, KeyRound, CheckCircle2 } from 'lucide-react';
 import { User } from '@mailpersonalize/shared';
+import { apiFetch } from '../../config';
 
 interface AuthViewProps {
   onAuthSuccess: (user: User) => void;
@@ -38,7 +39,7 @@ export default function AuthView({ onAuthSuccess, onGoogleSignIn, onDemoSignIn }
     setError(null);
 
     try {
-      const res = await fetch('/api/auth/login', {
+      const res = await apiFetch('/api/auth/login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email: email.trim(), password: password.trim() }),
@@ -50,7 +51,7 @@ export default function AuthView({ onAuthSuccess, onGoogleSignIn, onDemoSignIn }
         onAuthSuccess(data.user);
       }
     } catch (err: any) {
-      setError('An error occurred. Please try again.');
+      setError('An error occurred during login.');
     } finally {
       setLoading(false);
     }
@@ -63,12 +64,12 @@ export default function AuthView({ onAuthSuccess, onGoogleSignIn, onDemoSignIn }
   const handleSignupSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!name.trim() || !email.trim() || !password.trim()) {
-      setError('Full name, email address, and password are required.');
+      setError('Name, email, and password are required.');
       return;
     }
 
     if (!isPasswordValid) {
-      setError('Please satisfy all password requirements.');
+      setError('Password must meet length and number requirements.');
       return;
     }
 
@@ -81,7 +82,7 @@ export default function AuthView({ onAuthSuccess, onGoogleSignIn, onDemoSignIn }
     setError(null);
 
     try {
-      const res = await fetch('/api/auth/signup', {
+      const res = await apiFetch('/api/auth/signup', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -120,7 +121,7 @@ export default function AuthView({ onAuthSuccess, onGoogleSignIn, onDemoSignIn }
     setError(null);
 
     try {
-      const res = await fetch('/api/auth/forgot-password', {
+      const res = await apiFetch('/api/auth/forgot-password', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email: email.trim() }),
@@ -157,7 +158,7 @@ export default function AuthView({ onAuthSuccess, onGoogleSignIn, onDemoSignIn }
     setError(null);
 
     try {
-      const res = await fetch('/api/auth/reset-password', {
+      const res = await apiFetch('/api/auth/reset-password', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ token: resetToken.trim(), password: password.trim() }),

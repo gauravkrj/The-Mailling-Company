@@ -4,6 +4,7 @@ import {
   Plus, Mail, Eye, RefreshCw, Play, Trash2, AlertTriangle
 } from 'lucide-react';
 import { Campaign } from '@mailpersonalize/shared';
+import { apiFetch } from '../../config';
 
 interface ExtendedCampaign extends Omit<Campaign, 'sending_account' | 'stats'> {
   stats?: {
@@ -47,7 +48,7 @@ export default function CampaignsList({ onSelectCampaign, onResumeDraft, onCreat
   const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null);
 
   const fetchCampaigns = () => {
-    fetch('/api/campaigns')
+    apiFetch('/api/campaigns')
       .then((res) => res.json())
       .then((data) => {
         if (data.success && data.campaigns) {
@@ -67,7 +68,7 @@ export default function CampaignsList({ onSelectCampaign, onResumeDraft, onCreat
   const handleDeleteCampaign = async (campaignId: string) => {
     setDeletingId(campaignId);
     try {
-      const res = await fetch(`/api/campaigns/${campaignId}`, { method: 'DELETE' });
+      const res = await apiFetch(`/api/campaigns/${campaignId}`, { method: 'DELETE' });
       const data = await res.json();
       if (data.success) {
         setCampaigns((prev) => prev.filter((c) => c.id !== campaignId));

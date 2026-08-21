@@ -8,6 +8,7 @@ import {
 import { CSVPreviewResult, CSVRowPreview, ContentMode, EmailDesign, SendingAccount, CampaignSendingProgress } from '@mailpersonalize/shared';
 import AvatarLoader from '../common/AvatarLoader';
 import SendingDecisionHelper from '../common/SendingDecisionHelper';
+import { apiFetch } from '../../config';
 
 interface CampaignWizardProps {
   resumingCampaignId?: string | null;
@@ -253,7 +254,7 @@ export default function CampaignWizard({ resumingCampaignId, onClose, onCampaign
     setError(null);
 
     try {
-      const res = await fetch('/api/campaigns', {
+      const res = await apiFetch('/api/campaigns', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ name: campaignName.trim() }),
@@ -283,7 +284,7 @@ export default function CampaignWizard({ resumingCampaignId, onClose, onCampaign
     formData.append('file', file);
 
     try {
-      const res = await fetch(`/api/contacts/${campaignId}/upload-csv`, {
+      const res = await apiFetch(`/api/contacts/${campaignId}/upload-csv`, {
         method: 'POST',
         body: formData,
       });
@@ -321,7 +322,7 @@ export default function CampaignWizard({ resumingCampaignId, onClose, onCampaign
     setError(null);
 
     try {
-      const res = await fetch(`/api/contacts/${campaignId}/save-mapping`, {
+      const res = await apiFetch(`/api/contacts/${campaignId}/save-mapping`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -365,7 +366,7 @@ export default function CampaignWizard({ resumingCampaignId, onClose, onCampaign
         data: { Company: 'Apex Dynamics', Role: 'VP Marketing' },
       };
 
-      const res = await fetch('/api/campaigns/preview-ai', {
+      const res = await apiFetch('/api/campaigns/preview-ai', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -404,7 +405,7 @@ export default function CampaignWizard({ resumingCampaignId, onClose, onCampaign
     setError(null);
 
     try {
-      const res = await fetch(`/api/campaigns/${campaignId}/draft`, {
+      const res = await apiFetch(`/api/campaigns/${campaignId}/draft`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -440,7 +441,7 @@ export default function CampaignWizard({ resumingCampaignId, onClose, onCampaign
     setError(null);
 
     try {
-      const res = await fetch(`/api/campaigns/${campaignId}/send`, {
+      const res = await apiFetch(`/api/campaigns/${campaignId}/send`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({

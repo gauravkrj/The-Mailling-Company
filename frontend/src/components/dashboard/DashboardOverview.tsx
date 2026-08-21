@@ -4,6 +4,7 @@ import {
   Plus, Mail, Eye, Send, ArrowRight, Play, RefreshCw, Check, TrendingUp, Sparkles, AlertTriangle, Shield, CheckCircle2, UserCheck, Layers, Radio, HelpCircle, Users, FileSpreadsheet, FileText, Palette, BarChart3, Globe, X, ChevronDown, ChevronUp
 } from 'lucide-react';
 import { User, Campaign } from '@mailpersonalize/shared';
+import { apiFetch } from '../../config';
 
 interface ExtendedCampaign extends Omit<Campaign, 'sending_account' | 'stats'> {
   stats?: {
@@ -70,9 +71,9 @@ export default function DashboardOverview({
 
   useEffect(() => {
     Promise.all([
-      fetch('/api/campaigns').then((r) => r.json()),
-      fetch('/api/accounts').then((r) => r.json()),
-      fetch('/api/contacts/directory').then((r) => r.json()),
+      apiFetch('/api/campaigns').then((r) => r.json()),
+      apiFetch('/api/accounts').then((r) => r.json()),
+      apiFetch('/api/contacts/directory').then((r) => r.json()),
     ])
       .then(([cmpData, accData, dirData]) => {
         if (cmpData.success && cmpData.campaigns) {

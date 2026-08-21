@@ -3,6 +3,7 @@ import {
   User as UserIcon, Lock, ShieldAlert, CheckCircle2, AlertTriangle, Save, Key, Mail, Globe, Check, Trash2, X
 } from 'lucide-react';
 import { User } from '@mailpersonalize/shared';
+import { apiFetch } from '../../config';
 
 interface SettingsViewProps {
   user: User;
@@ -56,7 +57,7 @@ export default function SettingsView({ user, onUpdateUser, onLogout }: SettingsV
     setProfileSuccess(null);
 
     try {
-      const res = await fetch('/api/user/profile', {
+      const res = await apiFetch('/api/user/profile', {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -90,7 +91,7 @@ export default function SettingsView({ user, onUpdateUser, onLogout }: SettingsV
     setPasswordSuccess(null);
 
     try {
-      const res = await fetch('/api/user/password', {
+      const res = await apiFetch('/api/user/password', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -123,7 +124,7 @@ export default function SettingsView({ user, onUpdateUser, onLogout }: SettingsV
     setDeleteError(null);
 
     try {
-      const res = await fetch('/api/user/account', {
+      const res = await apiFetch('/api/user/account', {
         method: 'DELETE',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ confirmation: 'DELETE' }),
