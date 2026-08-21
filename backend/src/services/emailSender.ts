@@ -370,13 +370,73 @@ export async function sendTransactionalSystemEmail(options: {
 }): Promise<SendResult> {
   const { recipientEmail, subject, htmlContent, textContent } = options;
 
+  // 1. Check Resend API (HTTPS Port 443 - Never blocked on Railway)
+  const resendApiKey = process.env.RESEND_API_KEY;
+  if (resendApiKey) {
+    try {
+      const res = await fetch('https://api.resend.com/emails', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${resendApiKey}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          from: process.env.RESEND_FROM_EMAIL || 'The Mailling Company <onboarding@resend.dev>',
+          to: [recipientEmail],
+          subject,
+          html: htmlContent,
+          text: textContent,
+        }),
+      });
+      const data: any = await res.json();
+      if (res.ok && data.id) {
+        console.log(`📧 [Resend API Success]: Sent "${subject}" to ${recipientEmail} (Id: ${data.id})`);
+        return { success: true, messageId: data.id };
+      }
+      console.warn(`⚠️ [Resend API Notice]:`, data);
+    } catch (err: any) {
+      console.warn(`⚠️ [Resend API Error]:`, err?.message || err);
+    }
+  }
+
+  // 2. Check AWS SES (HTTPS Port 443 - Never blocked on Railway)
+  const awsKey = process.env.AWS_ACCESS_KEY_ID;
+  const awsSecret = process.env.AWS_SECRET_ACCESS_KEY;
+  const awsRegion = process.env.AWS_REGION || 'us-east-1';
+
+  if (awsKey && awsSecret && awsKey !== 'AKIAIOSFODNN7EXAMPLE') {
+    try {
+      const sesClient = new SESClient({
+        region: awsRegion,
+        credentials: { accessKeyId: awsKey, secretAccessKey: awsSecret },
+      });
+
+      const command = new SendEmailCommand({
+        Source: `"The Mailling Company" <${process.env.SMTP_USER || 'noreply@thedgwrench.com'}>`,
+        Destination: { ToAddresses: [recipientEmail] },
+        Message: {
+          Subject: { Data: subject },
+          Body: {
+            Html: { Data: htmlContent },
+            Text: { Data: textContent },
+          },
+        },
+      });
+
+      const res = await sesClient.send(command);
+      console.log(`📧 [AWS SES HTTPS Success]: Sent "${subject}" to ${recipientEmail} (MessageId: ${res.MessageId})`);
+      return { success: true, messageId: res.MessageId };
+    } catch (err: any) {
+      console.warn(`⚠️ [AWS SES Error]: ${err?.message || err}`);
+    }
+  }
+
+  // 3. Fallback to SMTP (Port 465 / 587 with fast 5s timeout)
   const smtpUser = (process.env.SMTP_USER || process.env.SYSTEM_SMTP_USER || '').trim();
   const rawSmtpPass = process.env.SMTP_PASS || process.env.SYSTEM_SMTP_PASS || '';
   const smtpPass = rawSmtpPass.replace(/\s+/g, '');
   const smtpHost = process.env.SMTP_HOST || 'smtp.gmail.com';
   const smtpPort = Number(process.env.SMTP_PORT) || 587;
-
-  console.log(`🔍 [Transactional Mailer Check]: SMTP_USER="${smtpUser ? smtpUser : 'NOT SET'}", PassLength=${smtpPass.length}`);
 
   if (smtpUser && smtpPass) {
     try {
@@ -388,6 +448,9 @@ export async function sendTransactionalSystemEmail(options: {
             secure: true,
             auth: { user: smtpUser, pass: smtpPass },
             tls: { rejectUnauthorized: false },
+            connectionTimeout: 6000,
+            greetingTimeout: 6000,
+            socketTimeout: 6000,
           }
         : {
             host: smtpHost,
@@ -395,6 +458,9 @@ export async function sendTransactionalSystemEmail(options: {
             secure: smtpPort === 465,
             auth: { user: smtpUser, pass: smtpPass },
             tls: { rejectUnauthorized: false },
+            connectionTimeout: 6000,
+            greetingTimeout: 6000,
+            socketTimeout: 6000,
           };
 
       const transporter = nodemailer.createTransport(transportConfig);
@@ -410,7 +476,7 @@ export async function sendTransactionalSystemEmail(options: {
       console.log(`📧 [Transactional Mailer Success]: Sent "${subject}" to ${recipientEmail} via SMTP (MessageId: ${info.messageId})`);
       return { success: true, messageId: info.messageId };
     } catch (err: any) {
-      console.error(`❌ [Transactional Mailer Primary Transport Error]:`, err?.message || err);
+      console.error(`❌ [SMTP Primary Transport Error]:`, err?.message || err);
       try {
         const fallbackTransporter = nodemailer.createTransport({
           host: 'smtp.gmail.com',
@@ -418,6 +484,9 @@ export async function sendTransactionalSystemEmail(options: {
           secure: false,
           auth: { user: smtpUser, pass: smtpPass },
           tls: { rejectUnauthorized: false },
+          connectionTimeout: 6000,
+          greetingTimeout: 6000,
+          socketTimeout: 6000,
         });
         const fallbackInfo = await fallbackTransporter.sendMail({
           from: `"The Mailling Company" <${smtpUser}>`,
@@ -426,45 +495,14 @@ export async function sendTransactionalSystemEmail(options: {
           html: htmlContent,
           text: textContent,
         });
-        console.log(`📧 [Transactional Mailer Fallback 587 Success]: Sent to ${recipientEmail} (MessageId: ${fallbackInfo.messageId})`);
+        console.log(`📧 [SMTP Fallback 587 Success]: Sent to ${recipientEmail} (MessageId: ${fallbackInfo.messageId})`);
         return { success: true, messageId: fallbackInfo.messageId };
       } catch (fallbackErr: any) {
-        console.error(`❌ [Transactional Mailer Fallback Error]:`, fallbackErr?.message || fallbackErr);
+        console.error(`❌ [SMTP Cloud Firewall Restriction]: Both Port 465 and Port 587 timed out. Railway container firewall blocks outbound raw TCP SMTP. Recommend setting RESEND_API_KEY or AWS SES (HTTPS Port 443).`);
       }
     }
   } else {
     console.warn(`⚠️ [Transactional Mailer Notice]: SMTP_USER or SMTP_PASS is missing in Railway environment variables.`);
-  }
-
-  const awsKey = process.env.AWS_ACCESS_KEY_ID;
-  const awsSecret = process.env.AWS_SECRET_ACCESS_KEY;
-  const awsRegion = process.env.AWS_REGION || 'us-east-1';
-
-  if (awsKey && awsSecret) {
-    try {
-      const sesClient = new SESClient({
-        region: awsRegion,
-        credentials: { accessKeyId: awsKey, secretAccessKey: awsSecret },
-      });
-
-      const command = new SendEmailCommand({
-        Source: `"The Mailling Company" <${smtpUser || 'noreply@thedgwrench.com'}>`,
-        Destination: { ToAddresses: [recipientEmail] },
-        Message: {
-          Subject: { Data: subject },
-          Body: {
-            Html: { Data: htmlContent },
-            Text: { Data: textContent },
-          },
-        },
-      });
-
-      const res = await sesClient.send(command);
-      console.log(`📧 [Transactional Mailer AWS SES Success]: Sent "${subject}" to ${recipientEmail} (MessageId: ${res.MessageId})`);
-      return { success: true, messageId: res.MessageId };
-    } catch (err: any) {
-      console.warn(`⚠️ [Transactional Mailer AWS SES Error]: ${err?.message || err}`);
-    }
   }
 
   console.log(`ℹ️ [Transactional Mailer Dev Mode]: System SMTP/SES not configured in .env. Verification link logged.`);
