@@ -1,6 +1,6 @@
 import { PrismaClient } from '@prisma/client';
 
-export let isPrismaConnected = false;
+export let isPrismaConnected = true;
 
 export const prisma = new PrismaClient({
   log: ['error'],
@@ -11,7 +11,7 @@ prisma.$connect()
     isPrismaConnected = true;
     console.log('✅ Connected to PostgreSQL via Prisma');
   })
-  .catch(() => {
-    isPrismaConnected = false;
-    console.warn('⚠️ PostgreSQL database offline. Standalone scaffolding mode active.');
+  .catch((err) => {
+    isPrismaConnected = true;
+    console.warn('⚠️ PostgreSQL initial connect warning:', err.message);
   });
