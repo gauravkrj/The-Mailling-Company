@@ -47,6 +47,12 @@ export default function App() {
       window.history.replaceState({}, document.title, window.location.pathname);
     }
 
+    const urlToken = params.get('token');
+    if (urlToken) {
+      localStorage.setItem('auth_token', urlToken);
+      window.history.replaceState({}, document.title, window.location.pathname);
+    }
+
     const verified = params.get('verified');
     if (verified === 'true') {
       setVerificationNotice('Your email address has been verified successfully!');
@@ -107,10 +113,12 @@ export default function App() {
   const handleLogout = async () => {
     try {
       await apiFetch('/api/auth/logout', { method: 'POST' });
-      setUser(null);
-      navigate('/login');
     } catch (e) {
       console.warn('Logout error');
+    } finally {
+      localStorage.removeItem('auth_token');
+      setUser(null);
+      navigate('/login');
     }
   };
 

@@ -276,11 +276,11 @@ router.get('/google/callback', async (req, res) => {
     res.cookie('token', sessionToken, {
       httpOnly: true,
       secure: config.nodeEnv === 'production',
-      sameSite: 'lax',
+      sameSite: config.nodeEnv === 'production' ? 'none' : 'lax',
       maxAge: 7 * 24 * 3600 * 1000,
     });
 
-    return res.redirect(`${config.clientUrl}/dashboard?auth=success`);
+    return res.redirect(`${config.clientUrl}/dashboard?token=${sessionToken}&auth=success`);
   } catch (err: any) {
     console.error('Google OAuth callback error:', err?.message || err);
     return res.redirect(`${config.clientUrl}?auth_error=token_exchange_failed`);
@@ -438,7 +438,7 @@ router.post('/signup', async (req, res) => {
   res.cookie('token', sessionToken, {
     httpOnly: true,
     secure: config.nodeEnv === 'production',
-    sameSite: 'lax',
+    sameSite: config.nodeEnv === 'production' ? 'none' : 'lax',
     maxAge: 7 * 24 * 3600 * 1000,
   });
 
@@ -464,6 +464,7 @@ router.post('/signup', async (req, res) => {
 
   return res.json({
     success: true,
+    token: sessionToken,
     user: {
       id: user.id,
       email: user.email,
@@ -535,12 +536,13 @@ router.post('/login', async (req, res) => {
   res.cookie('token', sessionToken, {
     httpOnly: true,
     secure: config.nodeEnv === 'production',
-    sameSite: 'lax',
+    sameSite: config.nodeEnv === 'production' ? 'none' : 'lax',
     maxAge: 7 * 24 * 3600 * 1000,
   });
 
   return res.json({
     success: true,
+    token: sessionToken,
     user: {
       id: user.id,
       email: user.email,
