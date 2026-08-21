@@ -272,7 +272,7 @@ app.post(['/api/webhooks/bounce', '/api/accounts/ses/webhook'], async (req, res)
   return res.json({ success: true, count: recipients.length });
 });
 
-const PORT = config.port;
-app.listen(PORT, () => {
-  console.log(`🚀 The Mailling Company Backend running on http://localhost:${PORT} (Port ${PORT})`);
+const PORT = parseInt(process.env.PORT || '5001', 10);
+app.listen(PORT, '0.0.0.0', () => {
+  console.log(`🚀 The Mailling Company Backend running on port ${PORT}`);
 });
