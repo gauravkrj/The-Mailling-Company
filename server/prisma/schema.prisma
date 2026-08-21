@@ -1,0 +1,136 @@
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+enum WorkspaceType {
+  GMAIL_PERSONAL
+  GMAIL_WORKSPACE
+  SES_ENTERPRISE
+}
+
+enum CampaignStatus {
+  DRAFT
+  QUEUED
+  SENDING
+  PAUSED
+  COMPLETED
+  CANCELLED
+}
+
+enum ContactStatus {
+  PENDING
+  QUEUED
+  SENT
+  FAILED
+  BOUNCED
+  UNSUBSCRIBED
+}
+
+enum SendProvider {
+  GMAIL
+  SES
+}
+
+enum SendLogStatus {
+  PENDING
+  SUCCESS
+  FAILED
+  BOUNCED
+}
+
+enum SuppressionReason {
+  UNSUBSCRIBE
+  BOUNCE
+  COMPLAINT
+  MANUAL
+}
+
+model User {
+  id                 String            @id @default(uuid())
+  email              String            @unique
+  name               String?
+  avatarUrl          String?
+  googleOAuthToken   String?
+  googleRefreshToken String?
+  workspaceType      WorkspaceType     @default(GMAIL_PERSONAL)
+  createdAt          DateTime          @default(now())
+  updatedAt          DateTime          @updatedAt
+  campaigns          Campaign[]
+  suppressions       SuppressionList[]
+}
+
+model Campaign {
+  id               String         @id @default(uuid())
+  userId           String
+  user             User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  name             String
+  status           CampaignStatus @default(DRAFT)
+  rateLimitPerHour Int            @default(80)
+  provider         SendProvider   @default(GMAIL)
+  createdAt        DateTime       @default(now())
+  updatedAt        DateTime       @updatedAt
+
+  contacts   Contact[]
+  emailDraft EmailDraft?
+  sendLogs   SendLog[]
+}
+
+model Contact {
+  id           String        @id @default(uuid())
+  campaignId   String
+  campaign     Campaign      @relation(fields: [campaignId], references: [id], onDelete: Cascade)
+  email        String
+  name         String?
+  company      String?
+  role         String?
+  customFields Json?
+  status       ContactStatus @default(PENDING)
+  createdAt    DateTime      @default(now())
+
+  sendLogs SendLog[]
+
+  @@index([campaignId, email])
+}
+
+model EmailDraft {
+  id                   String   @id @default(uuid())
+  campaignId           String   @unique
+  campaign             Campaign @relation(fields: [campaignId], references: [id], onDelete: Cascade)
+  subject              String
+  bodyTemplate         String
+  aiPersonalizeEnabled Boolean  @default(false)
+  aiPrompt             String?
+  createdAt            DateTime @default(now())
+  updatedAt            DateTime @updatedAt
+}
+
+model SendLog {
+  id            String        @id @default(uuid())
+  contactId     String
+  contact       Contact       @relation(fields: [contactId], references: [id], onDelete: Cascade)
+  campaignId    String
+  campaign      Campaign      @relation(fields: [campaignId], references: [id], onDelete: Cascade)
+  status        SendLogStatus @default(PENDING)
+  sentAt        DateTime?
+  openedAt      DateTime?
+  clickedAt     DateTime?
+  errorMessage  String?
+  trackingToken String        @unique @default(uuid())
+  createdAt     DateTime      @default(now())
+}
+
+model SuppressionList {
+  id        String            @id @default(uuid())
+  userId    String
+  user      User              @relation(fields: [userId], references: [id], onDelete: Cascade)
+  email     String
+  reason    SuppressionReason @default(UNSUBSCRIBE)
+  addedAt   DateTime          @default(now())
+
+  @@unique([userId, email])
+}

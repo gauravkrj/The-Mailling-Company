@@ -1,0 +1,20 @@
+{
+  "name": "mail-personalize-monorepo",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "dev": "concurrently \"npm run dev --workspace=backend\" \"npm run dev --workspace=frontend\"",
+    "build": "npm run build --workspace=shared && npm run build --workspace=backend && npm run build --workspace=frontend",
+    "prisma:generate": "npm run prisma:generate --workspace=backend",
+    "prisma:db-push": "npm run prisma:db-push --workspace=backend"
+  },
+  "workspaces": [
+    "shared",
+    "backend",
+    "frontend"
+  ],
+  "devDependencies": {
+    "concurrently": "^8.2.2",
+    "typescript": "^5.5.4"
+  }
+}

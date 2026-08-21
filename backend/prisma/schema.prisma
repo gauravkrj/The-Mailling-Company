@@ -1,0 +1,188 @@
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+model User {
+  id                   String            @id @default(uuid())
+  email                String            @unique
+  name                 String?
+  google_id            String?           @unique
+  password_hash        String?
+  company_website      String?
+  is_email_verified    Boolean           @default(false)
+  verification_token   String?
+  reset_token          String?
+  reset_token_expires  DateTime?
+  terms_accepted_at    DateTime?
+  created_at           DateTime          @default(now())
+  campaigns            Campaign[]
+  sending_accounts     SendingAccount[]
+  suppressions         SuppressionList[]
+  contact_directory    ContactDirectory[]
+}
+
+model Campaign {
+  id                 String          @id @default(uuid())
+  user_id            String
+  sending_account_id String?
+  name               String
+  status             String          @default("draft") // "draft" | "queued" | "sending" | "paused" | "completed" | "cancelled"
+  current_step       Int             @default(1)
+  created_at         DateTime        @default(now())
+
+  user               User            @relation(fields: [user_id], references: [id], onDelete: Cascade)
+  sending_account    SendingAccount? @relation(fields: [sending_account_id], references: [id], onDelete: SetNull)
+  contacts           Contact[]
+  email_draft        EmailDraft?
+  email_design       EmailDesign?
+  send_logs          SendLog[]
+
+  @@index([user_id])
+}
+
+model EmailDraft {
+  id              String   @id @default(uuid())
+  campaign_id     String   @unique
+  mode            String   @default("fixed_template")
+  format          String   @default("html") // "html" | "plain_text"
+  subject         String
+  body_template   String
+  plain_signature String?
+  ai_brief        String?
+  ai_tone         String?  @default("Professional")
+  created_at      DateTime @default(now())
+
+  campaign Campaign @relation(fields: [campaign_id], references: [id], onDelete: Cascade)
+}
+
+model EmailDesign {
+  id                    String   @id @default(uuid())
+  campaign_id           String   @unique
+  logo_url              String?
+  logo_size             String?  @default("medium")
+  logo_align            String?  @default("center")
+  header_color          String?  @default("#1A1617")
+  header_bg_image       String?
+  header_title          String?
+  header_subtitle       String?
+  header_text_color     String?  @default("#F2EDEE")
+  accent_color          String?  @default("#7B2038")
+  font_family           String?  @default("Arial, sans-serif")
+  signature_html        String?
+  cta_button_text       String?
+  cta_button_url        String?
+  cta_button_bg_color   String?  @default("#7B2038")
+  cta_button_text_color  String?  @default("#ffffff")
+  cta_button_radius     String?  @default("6px")
+  cta_button_align      String?  @default("center")
+  layout_preset         String?  @default("simple_text")
+  layout_json           Json?    @default("{}")
+
+  campaign Campaign @relation(fields: [campaign_id], references: [id], onDelete: Cascade)
+}
+
+model Contact {
+  id            String    @id @default(uuid())
+  campaign_id   String
+  email         String
+  custom_fields Json      @default("{}")
+  status        String    @default("pending") // "pending" | "sent" | "failed" | "bounced" | "suppressed"
+  created_at    DateTime  @default(now())
+
+  campaign Campaign  @relation(fields: [campaign_id], references: [id], onDelete: Cascade)
+  send_logs SendLog[]
+
+  @@index([campaign_id])
+  @@index([email])
+}
+
+model SendingAccount {
+  id                       String     @id @default(uuid())
+  user_id                  String
+  provider                 String     @default("google_oauth")
+  display_name             String
+  sender_email             String
+  encrypted_refresh_token  String?
+  smtp_host                String?
+  smtp_port                Int?
+  encrypted_smtp_password  String?
+  aws_access_key_id        String?
+  encrypted_aws_secret_key  String?
+  aws_region               String?
+  sender_domain            String?
+  verification_status      String?
+  dkim_verified            Boolean    @default(false)
+  production_access        Boolean    @default(false)
+  last_checked_at          DateTime?
+  daily_limit              Int        @default(500)
+  status                   String     @default("active")
+  connected_at             DateTime   @default(now())
+  last_verified_at         DateTime   @default(now())
+
+  user User       @relation(fields: [user_id], references: [id], onDelete: Cascade)
+  campaigns Campaign[]
+
+  @@unique([user_id, sender_email, provider])
+  @@index([user_id])
+}
+
+model SendLog {
+  id                 String    @id @default(uuid())
+  contact_id         String
+  campaign_id        String
+  sending_account_id String
+  status             String    @default("pending") // "pending" | "sent" | "failed" | "bounced" | "suppressed"
+  provider_used      String
+  rendered_subject   String?
+  rendered_body      String?
+  sent_at            DateTime?
+  opened_at          DateTime?
+  clicked_at         DateTime?
+  error_message      String?
+  unsubscribe_token  String    @default(uuid())
+  created_at         DateTime  @default(now())
+
+  contact Contact  @relation(fields: [contact_id], references: [id], onDelete: Cascade)
+  campaign Campaign @relation(fields: [campaign_id], references: [id], onDelete: Cascade)
+
+  @@index([campaign_id])
+  @@index([contact_id])
+  @@index([unsubscribe_token])
+}
+
+model SuppressionList {
+  id       String   @id @default(uuid())
+  user_id  String
+  email    String
+  reason   String   @default("unsubscribe")
+  added_at DateTime @default(now())
+
+  user User @relation(fields: [user_id], references: [id], onDelete: Cascade)
+
+  @@unique([user_id, email])
+  @@index([user_id])
+  @@index([email])
+}
+
+model ContactDirectory {
+  id              String   @id @default(uuid())
+  user_id         String
+  email           String
+  full_name       String?
+  custom_fields   Json     @default("{}")
+  status          String   @default("active") // "active" | "suppressed" | "bounced"
+  first_seen_at   DateTime @default(now())
+  last_updated_at DateTime @default(now())
+  campaigns_count Int      @default(1)
+
+  user User @relation(fields: [user_id], references: [id], onDelete: Cascade)
+
+  @@unique([user_id, email])
+  @@index([user_id])
+  @@index([email])
+}

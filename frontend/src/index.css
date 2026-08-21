@@ -1,0 +1,83 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  body {
+    font-family: 'Plus Jakarta Sans', 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+    color: #1A1A1A;
+    background-color: #F8F8F8;
+    -webkit-font-smoothing: antialiased;
+  }
+}
+
+@layer components {
+  /* Deep Green Primary Action Button (#054048) with 2px Black Border */
+  .btn-primary, .btn-accent {
+    @apply inline-flex items-center justify-center px-4 py-2.5 rounded-xl text-sm font-bold transition-all duration-150 ease-in-out cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed border-2 border-black shadow-sm;
+    background-color: #054048;
+    color: #FFFFFF;
+  }
+  .btn-primary:hover:not(:disabled), .btn-accent:hover:not(:disabled) {
+    background-color: #0A5D66;
+  }
+
+  /* Secondary Button: Pure White with Solid Black Border */
+  .btn-secondary {
+    @apply inline-flex items-center justify-center px-4 py-2.5 rounded-xl text-sm font-bold transition-all duration-150 ease-in-out cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed border-2 border-black shadow-sm;
+    background-color: #FFFFFF;
+    color: #1A1A1A;
+  }
+  .btn-secondary:hover:not(:disabled) {
+    background-color: #F0F0F0;
+  }
+
+  /* Primary Action Button (#054048) with 2px Black Border */
+  .btn-primary, .btn-accent, .btn-pink {
+    @apply inline-flex items-center justify-center px-4 py-2.5 rounded-xl text-sm font-bold transition-all duration-150 ease-in-out cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed border-2 border-black shadow-sm;
+    background-color: #054048;
+    color: #FFFFFF;
+  }
+  .btn-primary:hover:not(:disabled), .btn-accent:hover:not(:disabled), .btn-pink:hover:not(:disabled) {
+    background-color: #0A5D66;
+  }
+
+  /* Form Input Styling with Solid 2px Black Border */
+  .input-field {
+    @apply w-full px-3.5 py-2.5 rounded-xl text-sm text-[#1A1A1A] placeholder-[#7A7A7A] transition-all duration-150 outline-none bg-white border-2 border-black font-semibold;
+  }
+  .input-field:focus {
+    border-color: #054048;
+    box-shadow: 0 0 0 2px rgba(5, 64, 72, 0.2);
+  }
+
+  /* Custom Gumroad Styled Select Dropdown Elements */
+  select.input-field, select {
+    background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000000' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
+    background-repeat: no-repeat;
+    background-position: right 0.85rem center;
+    background-size: 1.1em;
+    padding-right: 2.5rem;
+    appearance: none;
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    cursor: pointer;
+    font-weight: 700;
+  }
+
+  /* Gumroad Light Card with 2px Solid Black Border */
+  .card-light, .card-dark {
+    background-color: #FFFFFF;
+    border: 2px solid #000000;
+    border-radius: 12px;
+    color: #1A1A1A;
+  }
+
+  /* Notice / Alert Banner Strip (#FEF6EA background with 2px Black Border) */
+  .notice-banner {
+    background-color: #FEF6EA;
+    border: 2px solid #000000;
+    border-radius: 12px;
+    color: #1A1A1A;
+  }
+}
