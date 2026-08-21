@@ -373,17 +373,23 @@ router.post('/signup', async (req, res) => {
           error: 'An account with this email already exists — try logging in instead.',
         });
       }
+      // Clean up stale in-memory store entries if user was deleted in PostgreSQL
+      for (const [key, val] of memoryUserStore.entries()) {
+        if (val.email && val.email.toLowerCase() === normalizedEmail) {
+          memoryUserStore.delete(key);
+        }
+      }
     } catch (e) {
       // Fallback
     }
-  }
-
-  for (const u of memoryUserStore.values()) {
-    if (u.email && u.email.toLowerCase() === normalizedEmail) {
-      return res.status(400).json({
-        success: false,
-        error: 'An account with this email already exists — try logging in instead.',
-      });
+  } else {
+    for (const u of memoryUserStore.values()) {
+      if (u.email && u.email.toLowerCase() === normalizedEmail) {
+        return res.status(400).json({
+          success: false,
+          error: 'An account with this email already exists — try logging in instead.',
+        });
+      }
     }
   }
 
@@ -716,7 +722,7 @@ router.post('/logout', (req, res) => {
 
 // 10. Get Current Authenticated User Endpoint
 router.get('/me', requireAuth, async (req: AuthenticatedRequest, res) => {
-  let fullUser: any = req.user;
+  let fullUser: any = null;
 
   if (isPrismaConnected && req.user?.id) {
     try {
@@ -731,8 +737,21 @@ router.get('/me', requireAuth, async (req: AuthenticatedRequest, res) => {
           is_email_verified: dbUser.is_email_verified,
           terms_accepted_at: dbUser.terms_accepted_at ? dbUser.terms_accepted_at.toISOString() : null,
         };
+      } else {
+        // User was deleted in PostgreSQL DB
+        res.clearCookie('token');
+        return res.status(401).json({ authenticated: false, error: 'User account no longer exists.' });
       }
     } catch (e) {}
+  }
+
+  if (!fullUser && req.user?.id && memoryUserStore.has(req.user.id)) {
+    fullUser = memoryUserStore.get(req.user.id);
+  }
+
+  if (!fullUser) {
+    res.clearCookie('token');
+    return res.status(401).json({ authenticated: false, error: 'User session invalid or deleted.' });
   }
 
   if (fullUser && memoryUserStore.has(fullUser.id)) {
