@@ -87,6 +87,18 @@ app.get('/api/admin/queues', requireAuth, async (req, res) => {
   }
 });
 
+// Root API Status Endpoint
+app.get('/', (req, res) => {
+  res.json({
+    status: 'ok',
+    app: 'The Mailling Company Backend API',
+    version: '1.0.0',
+    environment: config.nodeEnv,
+    dbConnected: isPrismaConnected,
+    timestamp: new Date().toISOString(),
+  });
+});
+
 // Health check endpoint
 app.get('/api/health', (req, res) => {
   res.json({
