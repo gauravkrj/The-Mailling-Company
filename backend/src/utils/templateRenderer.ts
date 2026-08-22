@@ -4,6 +4,7 @@ export interface RenderEmailOptions {
   bodyContent: string;
   design?: Partial<EmailDesign> | null;
   contactData?: Record<string, any>;
+  plainSignature?: string | null;
 }
 
 /**
@@ -11,7 +12,7 @@ export interface RenderEmailOptions {
  * Generates table-based HTML with inline CSS compatible with Outlook, Gmail, Apple Mail, Yahoo.
  */
 export function renderEmailHtml(options: RenderEmailOptions): string {
-  const { bodyContent, design, contactData } = options;
+  const { bodyContent, design, contactData, plainSignature } = options;
 
   let processedBody = bodyContent || '';
 
@@ -82,6 +83,7 @@ export function renderEmailHtml(options: RenderEmailOptions): string {
   const accentColor = design?.accent_color || '#7B2038';
   const fontFamily = design?.font_family || 'Arial, Helvetica, sans-serif';
   const signatureHtml = design?.signature_html || '';
+  const finalSignature = signatureHtml || (plainSignature ? plainSignature.trim().replace(/\n/g, '<br/>') : '');
 
   // Button design options
   const ctaText = design?.cta_button_text || '';
@@ -174,11 +176,11 @@ export function renderEmailHtml(options: RenderEmailOptions): string {
 
               <!-- Signature Block -->
               ${
-                signatureHtml
+                finalSignature
                   ? `<table border="0" cellpadding="0" cellspacing="0" width="100%" style="margin-top: 28px; border-top: 1px solid #e5e7eb; padding-top: 20px;">
                       <tr>
                         <td style="color: #4b5563; font-size: 13px; line-height: 1.5;">
-                          ${signatureHtml}
+                          ${finalSignature}
                         </td>
                       </tr>
                     </table>`

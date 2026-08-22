@@ -75,13 +75,27 @@ router.get('/', requireAuth, async (req: AuthenticatedRequest, res) => {
 
       campaigns = await Promise.all(
         dbCampaigns.map(async (c) => {
-          const sentCount = await prisma.sendLog.count({ where: { campaign_id: c.id, status: 'sent' } });
+          const sentCount = await prisma.sendLog.count({ where: { campaign_id: c.id, status: { not: 'failed' } } });
+          const openedCount = await prisma.sendLog.count({
+            where: {
+              campaign_id: c.id,
+              OR: [{ opened_at: { not: null } }, { clicked_at: { not: null } }, { status: 'opened' }, { status: 'clicked' }],
+            },
+          });
+          const clickedCount = await prisma.sendLog.count({
+            where: {
+              campaign_id: c.id,
+              OR: [{ clicked_at: { not: null } }, { status: 'clicked' }],
+            },
+          });
           const failedCount = await prisma.sendLog.count({ where: { campaign_id: c.id, status: 'failed' } });
           return {
             ...c,
             stats: {
               totalContacts: c._count.contacts,
               sentCount,
+              openedCount,
+              clickedCount,
               failedCount,
             },
           };

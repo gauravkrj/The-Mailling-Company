@@ -206,6 +206,7 @@ export async function processEmailSendJob(data: EmailJobData): Promise<{ success
         bodyContent,
         design: emailDesign,
         contactData,
+        plainSignature: emailDraft?.plain_signature,
       });
 
   const unsubscribeToken = `unsub_${contactId}_${Date.now()}`;
