@@ -332,12 +332,12 @@ export default function LandingPage() {
           {/* Logo / Wordmark */}
           <div
             onClick={() => navigate('/')}
-            className="flex items-center gap-2.5 cursor-pointer group py-2"
+            className="flex items-center gap-2 cursor-pointer group py-2"
           >
-            <div className="w-9 h-9 rounded-xl bg-[#054048] text-white flex items-center justify-center border-2 border-black shadow-sm transition-transform group-hover:scale-105">
-              <Send className="w-5 h-5 text-white" />
+            <div className="w-8 h-8 md:w-9 md:h-9 rounded-xl bg-[#054048] text-white flex items-center justify-center border-2 border-black shadow-sm transition-transform group-hover:scale-105 shrink-0">
+              <Send className="w-4 h-4 md:w-5 md:h-5 text-white" />
             </div>
-            <span className="font-extrabold text-base md:text-lg text-[#1A1A1A] tracking-tight">
+            <span className="font-extrabold text-sm sm:text-base md:text-lg text-[#1A1A1A] tracking-tight whitespace-nowrap">
               The Mailling Company
             </span>
           </div>
@@ -355,20 +355,21 @@ export default function LandingPage() {
             </a>
           </div>
 
-          {/* Action Buttons Right (Gumroad Boxed Border Style) */}
-          <div className="flex items-center gap-2.5">
+          {/* Action Buttons Right */}
+          <div className="flex items-center gap-2">
             <button
               onClick={() => navigate('/login')}
-              className="text-xs font-black text-[#1A1A1A] hover:bg-[#FEF6EA] hover:text-[#054048] px-4 py-2 rounded-xl border-2 border-black transition-all cursor-pointer"
+              className="text-xs font-black text-[#1A1A1A] hover:bg-[#FEF6EA] hover:text-[#054048] px-3.5 py-1.5 md:px-4 md:py-2 rounded-xl border-2 border-black transition-all cursor-pointer whitespace-nowrap"
             >
               Sign in
             </button>
 
+            {/* Hidden on mobile screens to prevent header wrapping */}
             <motion.button
               whileHover={reducedMotion ? {} : { scale: 1.02 }}
               whileTap={reducedMotion ? {} : { scale: 0.98 }}
               onClick={() => navigate('/login')}
-              className="py-2 px-5 text-xs font-black bg-black text-white hover:bg-[#054048] border-2 border-black rounded-xl shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] hover:shadow-none transition-all cursor-pointer"
+              className="hidden sm:inline-flex py-1.5 px-4 md:py-2 md:px-5 text-xs font-black bg-black text-white hover:bg-[#054048] border-2 border-black rounded-xl shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] hover:shadow-none transition-all cursor-pointer whitespace-nowrap"
             >
               Get started free
             </motion.button>
@@ -381,7 +382,7 @@ export default function LandingPage() {
         ref={heroRef}
         onMouseMove={handleHeroMouseMove}
         onMouseLeave={handleHeroMouseLeave}
-        className="relative pt-36 pb-16 md:pt-44 md:pb-24 px-6 max-w-7xl mx-auto flex flex-col items-center text-center overflow-hidden bg-[#F8F8F8]"
+        className="relative pt-32 pb-14 md:pt-44 md:pb-24 px-4 sm:px-6 max-w-7xl mx-auto flex flex-col items-center text-center overflow-hidden bg-[#F8F8F8]"
       >
         {/* Subtle Background Noise Grain & Ambient Depth Glow */}
         <div className="hero-grain-bg absolute inset-0 opacity-[0.035] pointer-events-none z-0 bg-[radial-gradient(#1A1A1A_1px,transparent_1px)] [background-size:16px_16px]" />
@@ -473,7 +474,7 @@ export default function LandingPage() {
         </motion.div>
 
         {/* Centered Column Content Block */}
-        <div className="max-w-4xl mx-auto space-y-7 z-20 relative pt-2 sm:pt-4">
+        <div className="max-w-4xl mx-auto space-y-6 sm:space-y-7 z-20 relative pt-2 sm:pt-4">
           {/* Eyebrow Badge */}
           <div className="hero-badge inline-flex items-center gap-2 bg-[#FEF6EA] border-2 border-black px-4 py-1.5 rounded-full text-xs sm:text-sm font-black text-[#054048] shadow-sm hover:scale-105 transition-transform cursor-default">
             <Sparkles className="w-4 h-4 text-[#054048]" />
@@ -481,25 +482,25 @@ export default function LandingPage() {
           </div>
 
           {/* Centered Large Bold Headline (Responsive scaling so it's spacious on mobile & huge on desktop) */}
-          <h1 className="hero-headline text-3xl sm:text-6xl md:text-7xl lg:text-[88px] xl:text-[96px] font-black text-[#1A1A1A] tracking-tight leading-[1.05] max-w-4xl mx-auto px-2">
+          <h1 className="hero-headline text-4xl sm:text-6xl md:text-7xl lg:text-[88px] xl:text-[96px] font-black text-[#1A1A1A] tracking-tight leading-[1.08] max-w-4xl mx-auto px-2">
             The inbox likes you again.
           </h1>
 
           {/* Centered Subheadline */}
-          <p className="hero-subheadline text-base sm:text-lg md:text-xl text-[#5A5A5A] leading-relaxed font-semibold max-w-2xl mx-auto">
+          <p className="hero-subheadline text-sm sm:text-lg md:text-xl text-[#5A5A5A] leading-relaxed font-semibold max-w-2xl mx-auto px-2">
             Write one email. AI makes it personal for every single contact — sent straight from your own inbox. No per-email fees, ever.
           </p>
 
           {/* Primary CTA & Secondary Link */}
           <div className="hero-cta-group flex flex-col items-center gap-3 pt-2">
             <motion.button
-              whileHover={reducedMotion ? {} : { scale: 1.05, y: -2 }}
+              whileHover={reducedMotion ? {} : { scale: 1.04, y: -2 }}
               whileTap={reducedMotion ? {} : { scale: 0.98 }}
               onClick={() => navigate('/login')}
-              className="btn-primary py-4 px-10 text-base font-black gap-3 flex items-center justify-center cursor-pointer shadow-md"
+              className="btn-primary py-3 px-7 text-sm sm:text-base font-black gap-2.5 flex items-center justify-center cursor-pointer shadow-md"
             >
               <span>Start sending free</span>
-              <ArrowRight className="w-5 h-5 stroke-[3]" />
+              <ArrowRight className="w-4 h-4 sm:w-5 sm:h-5 stroke-[3]" />
             </motion.button>
 
             <a
