@@ -40,16 +40,23 @@ app.use(cors({
     // Allow non-browser / same-origin without origin header
     if (!origin) return callback(null, true);
     
-    const allowedClientUrl = (config.clientUrl || 'http://localhost:3000').replace(/\/$/, '');
     const cleanOrigin = origin.replace(/\/$/, '');
 
+    const allowedOrigins = [
+      'https://themaillingcompany.com',
+      'https://www.themaillingcompany.com',
+      'https://api.themaillingcompany.com',
+      (config.clientUrl || '').replace(/\/$/, ''),
+    ].filter(Boolean);
+
     if (
-      cleanOrigin === allowedClientUrl ||
+      allowedOrigins.includes(cleanOrigin) ||
+      cleanOrigin.endsWith('.themaillingcompany.com') ||
       cleanOrigin.endsWith('.vercel.app') ||
       cleanOrigin.includes('localhost') ||
       config.nodeEnv !== 'production'
     ) {
-      return callback(null, true);
+      return callback(null, origin); // Pass exact origin string so wildcard '*' is never used for credentials
     }
     return callback(null, false);
   },
