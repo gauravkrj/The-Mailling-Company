@@ -143,12 +143,12 @@ export default function CampaignWizard({ resumingCampaignId, onClose, onCampaign
 
   const fetchSendingAccounts = async () => {
     try {
-      const res = await fetch('/api/accounts');
+      const res = await apiFetch('/api/accounts');
       const data = await res.json();
       if (res.ok && data.success && Array.isArray(data.accounts)) {
         setSendingAccounts(data.accounts);
-        if (data.accounts.length > 0 && !selectedAccountId) {
-          setSelectedAccountId(data.accounts[0].id);
+        if (data.accounts.length > 0) {
+          setSelectedAccountId((prev) => prev || data.accounts[0].id);
         }
       }
     } catch (e) {}
@@ -157,7 +157,7 @@ export default function CampaignWizard({ resumingCampaignId, onClose, onCampaign
   const hydrateCampaignDraft = async (cid: string) => {
     setLoading(true);
     try {
-      const res = await fetch(`/api/campaigns/${cid}`);
+      const res = await apiFetch(`/api/campaigns/${cid}`);
       const data = await res.json();
       if (res.ok && data.success && data.campaign) {
         const cmp = data.campaign;

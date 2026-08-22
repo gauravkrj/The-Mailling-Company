@@ -463,7 +463,7 @@ router.post('/:id/render-preview', requireAuth, (req: AuthenticatedRequest, res)
 // 8. Start / Enqueue Campaign Sending Pipeline
 router.post('/:id/send', requireAuth, async (req: AuthenticatedRequest, res) => {
   const { id } = req.params;
-  const sending_account_id = req.body.sending_account_id || req.body.sendingAccountId || 'demo_account_1';
+  let sending_account_id = req.body.sending_account_id || req.body.sendingAccountId;
   const userId = req.user!.id;
 
   let contacts: any[] = [];
@@ -471,12 +471,23 @@ router.post('/:id/send', requireAuth, async (req: AuthenticatedRequest, res) => 
 
   if (isPrismaConnected) {
     try {
-      sendingAccount = await prisma.sendingAccount.findUnique({
-        where: { id: sending_account_id },
-      });
+      if (sending_account_id) {
+        sendingAccount = await prisma.sendingAccount.findUnique({
+          where: { id: sending_account_id },
+        });
+      }
+      if (!sendingAccount) {
+        // Auto-find active sending account connected by this user
+        sendingAccount = await prisma.sendingAccount.findFirst({
+          where: { user_id: userId, status: 'active' },
+        });
+        if (sendingAccount) {
+          sending_account_id = sendingAccount.id;
+        }
+      }
 
       contacts = await prisma.contact.findMany({
-        where: { campaign_id: id, status: 'pending' },
+        where: { campaign_id: id },
       });
 
       await prisma.campaign.update({

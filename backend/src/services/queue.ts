@@ -85,6 +85,17 @@ export async function processEmailSendJob(data: EmailJobData): Promise<{ success
     emailDesign = memoryDesignStore.get(campaignId);
   }
 
+  if (!sendingAccount && isPrismaConnected) {
+    try {
+      if (sendingAccountId) {
+        sendingAccount = await prisma.sendingAccount.findUnique({ where: { id: sendingAccountId } });
+      }
+      if (!sendingAccount) {
+        sendingAccount = await prisma.sendingAccount.findFirst({ where: { user_id: userId, status: 'active' } });
+      }
+    } catch (e) {}
+  }
+
   if (!sendingAccount) {
     sendingAccount = memoryAccountStore.get(sendingAccountId);
     if (!sendingAccount && memoryAccountStore.size > 0) {
