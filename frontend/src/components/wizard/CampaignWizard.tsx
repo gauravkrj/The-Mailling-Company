@@ -95,7 +95,7 @@ export default function CampaignWizard({ resumingCampaignId, onClose, onCampaign
   const [format, setFormat] = useState<'html' | 'plain_text'>('html');
   const [subject, setSubject] = useState('Quick question regarding {{company}}');
   const [bodyTemplate, setBodyTemplate] = useState(TEMPLATE_PRESETS[0].body);
-  const [plainSignature, setPlainSignature] = useState('Best regards,\nGaurav Jha\nThe Mailling Company');
+  const [plainSignature, setPlainSignature] = useState('Best regards,\n{{full_name}}\nThe Mailling Company');
   const [aiBrief, setAiBrief] = useState('Pitch email introducing our SaaS to marketing managers, friendly but professional');
   const [aiTone, setAiTone] = useState('Professional');
   const [generatingDraft, setGeneratingDraft] = useState(false);
@@ -528,21 +528,52 @@ export default function CampaignWizard({ resumingCampaignId, onClose, onCampaign
     reader.readAsDataURL(file);
   };
 
+  // Helper to replace canonical tags with sample contact data (from uploaded CSV or realistic defaults)
+  const replaceSampleTags = (text: string) => {
+    if (!text) return '';
+    const sampleContact = parseResult?.contacts?.[0];
+    const sampleEmail = sampleContact?.email || 'alex.rivera@startup.io';
+    const sampleName =
+      sampleContact?.name ||
+      sampleContact?.data?.['full_name'] ||
+      sampleContact?.data?.['Full Name'] ||
+      sampleContact?.data?.['name'] ||
+      'Alex Rivera';
+    const sampleCompany =
+      sampleContact?.data?.['Company'] ||
+      sampleContact?.data?.['company'] ||
+      sampleContact?.data?.['Company Name'] ||
+      'Apex Dynamics';
+    const sampleRole =
+      sampleContact?.data?.['Role'] ||
+      sampleContact?.data?.['role'] ||
+      sampleContact?.data?.['Title'] ||
+      'VP Marketing';
+    const sampleAttr1 = sampleContact?.data?.['attribute_1'] || 'San Francisco';
+    const sampleAttr2 = sampleContact?.data?.['attribute_2'] || 'Tech';
+    const sampleAttr3 = sampleContact?.data?.['attribute_3'] || '50-200';
+    const sampleAttr4 = sampleContact?.data?.['attribute_4'] || 'Q3 Campaign';
+    const sampleAttr5 = sampleContact?.data?.['attribute_5'] || 'Priority';
+
+    return text
+      .replace(/\{\{\s*email\s*\}\}/gi, sampleEmail)
+      .replace(/\{\{\s*(full_name|full\s*name|name|contact_name|fullname|first_name)\s*\}\}/gi, sampleName)
+      .replace(/\{\{\s*(company|organization|company_name|org|company\s*name)\s*\}\}/gi, sampleCompany)
+      .replace(/\{\{\s*(role|title|job_title|position|job\s*title)\s*\}\}/gi, sampleRole)
+      .replace(/\{\{\s*attribute_1\s*\}\}/gi, sampleAttr1)
+      .replace(/\{\{\s*attribute_2\s*\}\}/gi, sampleAttr2)
+      .replace(/\{\{\s*attribute_3\s*\}\}/gi, sampleAttr3)
+      .replace(/\{\{\s*attribute_4\s*\}\}/gi, sampleAttr4)
+      .replace(/\{\{\s*attribute_5\s*\}\}/gi, sampleAttr5);
+  };
+
   // Compiled Live Email Client HTML
   const compiledPreviewHtml = useMemo(() => {
-    let bodyWithTags = bodyTemplate
-      .replace(/\{\{email\}\}/gi, 'alex.rivera@startup.io')
-      .replace(/\{\{full_name\}\}/gi, 'Alex Rivera')
-      .replace(/\{\{full name\}\}/gi, 'Alex Rivera')
-      .replace(/\{\{company\}\}/gi, 'Apex Dynamics')
-      .replace(/\{\{role\}\}/gi, 'VP Marketing')
-      .replace(/\{\{attribute_1\}\}/gi, 'San Francisco')
-      .replace(/\{\{attribute_2\}\}/gi, 'Tech')
-      .replace(/\{\{attribute_3\}\}/gi, '50-200')
-      .replace(/\{\{attribute_4\}\}/gi, 'Q3 Campaign')
-      .replace(/\{\{attribute_5\}\}/gi, 'Priority');
+    const renderedBody = replaceSampleTags(bodyTemplate);
+    const renderedSubject = replaceSampleTags(subject);
+    const renderedSignature = replaceSampleTags(plainSignature);
 
-    const formattedBody = bodyWithTags.replace(/\n/g, '<br/>');
+    const formattedBody = renderedBody.replace(/\n/g, '<br/>');
 
     const logoHtml = design.logo_url
       ? `<div style="text-align: ${design.logo_align || 'center'}; padding-bottom: 16px;"><img src="${design.logo_url}" style="max-height: 48px; display: inline-block;" alt="Company Logo" /></div>`
@@ -560,14 +591,14 @@ export default function CampaignWizard({ resumingCampaignId, onClose, onCampaign
          </div>`
       : '';
 
-    const signatureHtml = plainSignature
-      ? `<div style="margin-top: 24px; padding-top: 16px; border-top: 1px solid #E5E7EB; color: #4B5563; font-size: 13px;">${plainSignature.replace(/\n/g, '<br/>')}</div>`
+    const signatureHtml = renderedSignature
+      ? `<div style="margin-top: 24px; padding-top: 16px; border-top: 1px solid #E5E7EB; color: #4B5563; font-size: 13px;">${renderedSignature.replace(/\n/g, '<br/>')}</div>`
       : '';
 
     return `
       <div style="font-family: ${design.font_family || 'Arial, sans-serif'}; background-color: #F8F8F8; padding: 24px; color: #1A1A1A; border: 2px solid #000000; border-radius: 12px; max-w-xl mx-auto;">
         <div style="background-color: #FFFFFF; border: 2px solid #000000; border-radius: 8px; overflow: hidden;">
-          ${design.header_bg_image || design.layout_preset === 'header_banner' ? `<div style="${headerBgStyle}">${logoHtml}<h2 style="margin: 0; font-size: 18px; font-weight: bold;">${subject}</h2></div>` : ''}
+          ${design.header_bg_image || design.layout_preset === 'header_banner' ? `<div style="${headerBgStyle}">${logoHtml}<h2 style="margin: 0; font-size: 18px; font-weight: bold;">${renderedSubject}</h2></div>` : ''}
           <div style="padding: 24px;">
             ${!design.header_bg_image && design.layout_preset !== 'header_banner' ? logoHtml : ''}
             <div style="font-size: 14px; line-height: 1.6; color: #1A1A1A;">
@@ -579,7 +610,7 @@ export default function CampaignWizard({ resumingCampaignId, onClose, onCampaign
         </div>
       </div>
     `;
-  }, [bodyTemplate, subject, plainSignature, design]);
+  }, [bodyTemplate, subject, plainSignature, design, parseResult]);
 
   return (
     <div className="space-y-6 max-w-6xl mx-auto pb-12 font-sans">
@@ -1124,42 +1155,41 @@ export default function CampaignWizard({ resumingCampaignId, onClose, onCampaign
                 </div>
               ) : (
                 <div className="space-y-3">
-                  <div className="flex items-center justify-between">
-                    <label className="text-xs font-bold text-[#1A1A1A]">Email Body Template *</label>
-                    <button
-                      type="button"
-                      onClick={() => setAiBrief((prev) => prev || 'Write a high-converting B2B sales email template with {{name}} and {{company}} placeholders.')}
-                      className="text-xs font-extrabold text-[#054048] bg-[#FEF6EA] hover:bg-[#FCECD8] border-2 border-black py-1 px-3 rounded-lg flex items-center gap-1.5 cursor-pointer transition-colors"
-                    >
-                      <Sparkles className="w-3.5 h-3.5" /> Generate AI Template with Gemini
-                    </button>
-                  </div>
-
-                  {aiBrief !== '' && (
-                    <div className="notice-banner p-3 space-y-2 text-xs">
-                      <div className="flex items-center justify-between">
-                        <span className="font-extrabold text-[#054048]">✨ AI Template Generator Brief</span>
-                        <button type="button" onClick={() => setAiBrief('')} className="text-[#5A5A5A] font-bold">✕</button>
-                      </div>
+                  {/* Integrated Gemini AI Subject & Body Drafting Section */}
+                  <div className="bg-[#FEF6EA] border-2 border-black rounded-xl p-4 space-y-3 shadow-sm">
+                    <div className="flex items-center justify-between">
+                      <span className="font-extrabold text-xs text-[#054048] flex items-center gap-1.5">
+                        <Sparkles className="w-4 h-4 text-[#054048]" /> Draft Subject & Body using Gemini LLM
+                      </span>
+                      <span className="text-[11px] text-[#5A5A5A] font-semibold">Press Enter or click button to re-generate anytime</span>
+                    </div>
+                    <div className="flex flex-col sm:flex-row gap-2">
                       <input
                         type="text"
                         value={aiBrief}
                         onChange={(e) => setAiBrief(e.target.value)}
-                        placeholder="E.g. Write a friendly outreach template introducing our AI email platform..."
-                        className="input-field text-xs bg-white"
+                        onKeyDown={(e) => {
+                          if (e.key === 'Enter') {
+                            e.preventDefault();
+                            if (aiBrief.trim() && !generatingDraft) handleGenerateAISample();
+                          }
+                        }}
+                        placeholder="E.g. Pitch email introducing our SaaS to marketing managers, friendly but professional..."
+                        className="input-field text-xs bg-white flex-1"
                       />
-                      <div className="flex justify-end">
-                        <button
-                          type="button"
-                          onClick={handleGenerateAISample}
-                          disabled={generatingDraft || !aiBrief.trim()}
-                          className="btn-primary py-1.5 px-3 text-xs font-extrabold gap-1 flex items-center cursor-pointer"
-                        >
-                          <Sparkles className="w-3.5 h-3.5" /> {generatingDraft ? 'Generating...' : 'Generate & Fill Body'}
-                        </button>
-                      </div>
+                      <button
+                        type="button"
+                        onClick={handleGenerateAISample}
+                        disabled={generatingDraft || !aiBrief.trim()}
+                        className="btn-primary py-2 px-4 text-xs font-extrabold gap-1.5 flex items-center justify-center shrink-0 cursor-pointer"
+                      >
+                        <Sparkles className="w-3.5 h-3.5" />
+                        {generatingDraft ? 'Drafting with Gemini...' : 'Draft Email using Gemini'}
+                      </button>
                     </div>
-                  )}
+                  </div>
+
+                  <label className="text-xs font-bold text-[#1A1A1A] block">Email Body Template *</label>
 
                   <textarea
                     ref={bodyTextareaRef}
@@ -1445,12 +1475,12 @@ export default function CampaignWizard({ resumingCampaignId, onClose, onCampaign
                   <div className="bg-[#F8F8F8] border-2 border-black rounded-xl p-5 space-y-3 font-mono text-xs text-[#1A1A1A] leading-relaxed">
                     <div className="border-b-2 border-black pb-2">
                       <span className="text-[#5A5A5A] uppercase tracking-wider text-[10px] font-bold">Subject:</span>
-                      <p className="font-extrabold text-[#1A1A1A] mt-0.5">{subject}</p>
+                      <p className="font-extrabold text-[#1A1A1A] mt-0.5">{replaceSampleTags(subject)}</p>
                     </div>
-                    <div className="whitespace-pre-wrap">{bodyTemplate}</div>
+                    <div className="whitespace-pre-wrap">{replaceSampleTags(bodyTemplate)}</div>
                     {plainSignature && (
                       <div className="border-t-2 border-black pt-3 whitespace-pre-wrap text-[#5A5A5A]">
-                        {plainSignature}
+                        {replaceSampleTags(plainSignature)}
                       </div>
                     )}
                   </div>
