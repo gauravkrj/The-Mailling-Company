@@ -322,57 +322,53 @@ export default function LandingPage() {
   return (
     <div className="min-h-screen bg-[#F8F8F8] text-[#1A1A1A] font-sans antialiased overflow-x-hidden">
       
-      {/* 1. STICKY TOP NAVIGATION */}
+      {/* 1. GUMROAD-INSPIRED SOLID BORDER TOP NAVIGATION */}
       <nav
-        className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
+        className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 bg-[#F8F8F8] border-b-2 border-black shadow-sm ${
           navVisible ? 'translate-y-0' : '-translate-y-full'
-        } ${
-          navScrolled
-            ? 'bg-[#F8F8F8]/90 backdrop-blur-md border-b-2 border-black shadow-sm py-3'
-            : 'bg-transparent py-5'
         }`}
       >
-        <div className="max-w-7xl mx-auto px-6 flex items-center justify-between">
+        <div className="max-w-7xl mx-auto px-4 md:px-8 flex items-center justify-between h-16">
           {/* Logo / Wordmark */}
           <div
             onClick={() => navigate('/')}
-            className="flex items-center gap-2.5 cursor-pointer group"
+            className="flex items-center gap-2.5 cursor-pointer group py-2"
           >
             <div className="w-9 h-9 rounded-xl bg-[#054048] text-white flex items-center justify-center border-2 border-black shadow-sm transition-transform group-hover:scale-105">
               <Send className="w-5 h-5 text-white" />
             </div>
-            <span className="font-extrabold text-lg text-[#1A1A1A] tracking-tight">
+            <span className="font-extrabold text-base md:text-lg text-[#1A1A1A] tracking-tight">
               The Mailling Company
             </span>
           </div>
 
           {/* Nav Center Links */}
-          <div className="hidden md:flex items-center gap-8 text-xs font-bold text-[#1A1A1A]">
-            <a href="#features" className="hover:text-[#054048] transition-colors">
+          <div className="hidden md:flex items-center gap-2 text-xs font-extrabold text-[#1A1A1A]">
+            <a href="#features" className="px-4 py-2 rounded-full hover:bg-black hover:text-white transition-all">
               Features
             </a>
-            <a href="#how-it-works" className="hover:text-[#054048] transition-colors">
+            <a href="#how-it-works" className="px-4 py-2 rounded-full hover:bg-black hover:text-white transition-all">
               How it works
             </a>
-            <a href="#why-free" className="hover:text-[#054048] transition-colors">
+            <a href="#why-free" className="px-4 py-2 rounded-full hover:bg-black hover:text-white transition-all">
               Why it's free
             </a>
           </div>
 
-          {/* Action Buttons Right */}
-          <div className="flex items-center gap-3">
+          {/* Action Buttons Right (Gumroad Boxed Border Style) */}
+          <div className="flex items-center gap-2.5">
             <button
               onClick={() => navigate('/login')}
-              className="text-xs font-extrabold text-[#1A1A1A] hover:text-[#054048] px-3 py-2 transition-colors cursor-pointer"
+              className="text-xs font-black text-[#1A1A1A] hover:bg-[#FEF6EA] hover:text-[#054048] px-4 py-2 rounded-xl border-2 border-black transition-all cursor-pointer"
             >
               Sign in
             </button>
 
             <motion.button
-              whileHover={reducedMotion ? {} : { scale: 1.04, y: -2 }}
+              whileHover={reducedMotion ? {} : { scale: 1.02 }}
               whileTap={reducedMotion ? {} : { scale: 0.98 }}
               onClick={() => navigate('/login')}
-              className="btn-primary py-2.5 px-5 text-xs font-extrabold cursor-pointer"
+              className="py-2 px-5 text-xs font-black bg-black text-white hover:bg-[#054048] border-2 border-black rounded-xl shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] hover:shadow-none transition-all cursor-pointer"
             >
               Get started free
             </motion.button>
