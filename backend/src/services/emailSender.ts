@@ -370,36 +370,37 @@ export async function sendTransactionalSystemEmail(options: {
 }): Promise<SendResult> {
   const { recipientEmail, subject, htmlContent, textContent } = options;
 
-  // 1. Check Brevo API (HTTPS Port 443 - 300 free emails/day to ANY recipient)
-  const brevoApiKey = process.env.BREVO_API_KEY;
-  if (brevoApiKey) {
+  // 0. Check MailerSend API (HTTPS Port 443 - Instant 12,000 free emails/month)
+  const mailerSendApiKey = process.env.MAILERSEND_API_KEY;
+  if (mailerSendApiKey) {
     try {
-      const res = await fetch('https://api.brevo.com/v3/smtp/email', {
+      const res = await fetch('https://api.mailersend.com/v1/email', {
         method: 'POST',
         headers: {
-          'api-key': brevoApiKey,
-          'accept': 'application/json',
-          'content-type': 'application/json',
+          'Authorization': `Bearer ${mailerSendApiKey}`,
+          'Content-Type': 'application/json',
+          'X-Requested-With': 'XMLHttpRequest',
         },
         body: JSON.stringify({
-          sender: {
+          from: {
+            email: process.env.MAILERSEND_FROM_EMAIL || 'info@trial-z3m5jgr5y3g4py6o.mlsender.net',
             name: 'The Mailling Company',
-            email: process.env.BREVO_SENDER_EMAIL || process.env.SMTP_USER || 'themaillingcompany@gmail.com',
           },
           to: [{ email: recipientEmail }],
           subject,
-          htmlContent,
-          textContent,
+          html: htmlContent,
+          text: textContent,
         }),
       });
-      const data: any = await res.json();
-      if (res.ok && data.messageId) {
-        console.log(`📧 [Brevo API Success]: Sent "${subject}" to ${recipientEmail} (MessageId: ${data.messageId})`);
-        return { success: true, messageId: data.messageId };
+      if (res.status === 202 || res.status === 200) {
+        const messageId = res.headers.get('x-message-id') || `ms_${Date.now()}`;
+        console.log(`📧 [MailerSend API Success]: Sent "${subject}" to ${recipientEmail} (Id: ${messageId})`);
+        return { success: true, messageId };
       }
-      console.warn(`⚠️ [Brevo API Notice]:`, data);
+      const data: any = await res.json().catch(() => ({}));
+      console.warn(`⚠️ [MailerSend API Notice]:`, data);
     } catch (err: any) {
-      console.warn(`⚠️ [Brevo API Error]:`, err?.message || err);
+      console.warn(`⚠️ [MailerSend API Error]:`, err?.message || err);
     }
   }
 
