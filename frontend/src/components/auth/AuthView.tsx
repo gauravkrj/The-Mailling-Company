@@ -679,17 +679,6 @@ export default function AuthView({ onAuthSuccess, onGoogleSignIn, onDemoSignIn }
           </form>
         )}
 
-        {/* Demo Login Option */}
-        <div className="pt-2 border-t-2 border-black">
-          <button
-            type="button"
-            onClick={onDemoSignIn}
-            className="w-full text-xs text-[#054048] hover:underline font-bold py-1 transition-colors flex items-center justify-center gap-1 cursor-pointer"
-          >
-            Or Instant Demo Account <ArrowRight className="w-3.5 h-3.5" />
-          </button>
-        </div>
-
       </div>
     </div>
   );

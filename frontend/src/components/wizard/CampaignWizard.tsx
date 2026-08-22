@@ -141,6 +141,43 @@ export default function CampaignWizard({ resumingCampaignId, onClose, onCampaign
     }
   }, [activeCampaignId]);
 
+  // Live Dispatch Progress Polling Effect (0/1 -> 1/1 Real-Time Counter Update)
+  useEffect(() => {
+    let intervalId: any = null;
+    if (isSendingActive && campaignId) {
+      intervalId = setInterval(async () => {
+        try {
+          const res = await apiFetch(`/api/campaigns/${campaignId}/analytics`);
+          const data = await res.json();
+          if (res.ok && data.success && data.stats) {
+            const stats = data.stats;
+            const processed = (stats.sentCount || 0) + (stats.failedCount || 0);
+            const total = stats.totalContacts || 1;
+
+            setSendingProgress({
+              campaignId: campaignId || '',
+              status: processed >= total ? 'completed' : 'sending',
+              totalContacts: total,
+              sentCount: stats.sentCount || 0,
+              failedCount: stats.failedCount || 0,
+              pendingCount: Math.max(0, total - processed),
+              suppressedCount: stats.unsubscribedCount || 0,
+              estimatedCompletion: processed >= total ? 'Completed' : 'Sending...',
+            });
+
+            if (processed >= total) {
+              setIsSendingActive(false);
+              clearInterval(intervalId);
+            }
+          }
+        } catch (e) {}
+      }, 1000);
+    }
+    return () => {
+      if (intervalId) clearInterval(intervalId);
+    };
+  }, [isSendingActive, campaignId]);
+
   const fetchSendingAccounts = async () => {
     try {
       const res = await apiFetch('/api/accounts');
@@ -1086,8 +1123,44 @@ export default function CampaignWizard({ resumingCampaignId, onClose, onCampaign
                   )}
                 </div>
               ) : (
-                <div className="space-y-1.5">
-                  <label className="text-xs font-bold text-[#1A1A1A]">Email Body Template *</label>
+                <div className="space-y-3">
+                  <div className="flex items-center justify-between">
+                    <label className="text-xs font-bold text-[#1A1A1A]">Email Body Template *</label>
+                    <button
+                      type="button"
+                      onClick={() => setAiBrief((prev) => prev || 'Write a high-converting B2B sales email template with {{name}} and {{company}} placeholders.')}
+                      className="text-xs font-extrabold text-[#054048] bg-[#FEF6EA] hover:bg-[#FCECD8] border-2 border-black py-1 px-3 rounded-lg flex items-center gap-1.5 cursor-pointer transition-colors"
+                    >
+                      <Sparkles className="w-3.5 h-3.5" /> Generate AI Template with Gemini
+                    </button>
+                  </div>
+
+                  {aiBrief !== '' && (
+                    <div className="notice-banner p-3 space-y-2 text-xs">
+                      <div className="flex items-center justify-between">
+                        <span className="font-extrabold text-[#054048]">✨ AI Template Generator Brief</span>
+                        <button type="button" onClick={() => setAiBrief('')} className="text-[#5A5A5A] font-bold">✕</button>
+                      </div>
+                      <input
+                        type="text"
+                        value={aiBrief}
+                        onChange={(e) => setAiBrief(e.target.value)}
+                        placeholder="E.g. Write a friendly outreach template introducing our AI email platform..."
+                        className="input-field text-xs bg-white"
+                      />
+                      <div className="flex justify-end">
+                        <button
+                          type="button"
+                          onClick={handleGenerateAISample}
+                          disabled={generatingDraft || !aiBrief.trim()}
+                          className="btn-primary py-1.5 px-3 text-xs font-extrabold gap-1 flex items-center cursor-pointer"
+                        >
+                          <Sparkles className="w-3.5 h-3.5" /> {generatingDraft ? 'Generating...' : 'Generate & Fill Body'}
+                        </button>
+                      </div>
+                    </div>
+                  )}
+
                   <textarea
                     ref={bodyTextareaRef}
                     value={bodyTemplate}
