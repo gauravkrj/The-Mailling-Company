@@ -370,41 +370,7 @@ export async function sendTransactionalSystemEmail(options: {
 }): Promise<SendResult> {
   const { recipientEmail, subject, htmlContent, textContent } = options;
 
-  // 0. Check MailerSend API (HTTPS Port 443 - Instant 12,000 free emails/month)
-  const mailerSendApiKey = process.env.MAILERSEND_API_KEY;
-  if (mailerSendApiKey) {
-    try {
-      const res = await fetch('https://api.mailersend.com/v1/email', {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${mailerSendApiKey}`,
-          'Content-Type': 'application/json',
-          'X-Requested-With': 'XMLHttpRequest',
-        },
-        body: JSON.stringify({
-          from: {
-            email: process.env.MAILERSEND_FROM_EMAIL || 'info@trial-z3m5jgr5y3g4py6o.mlsender.net',
-            name: 'The Mailling Company',
-          },
-          to: [{ email: recipientEmail }],
-          subject,
-          html: htmlContent,
-          text: textContent,
-        }),
-      });
-      if (res.status === 202 || res.status === 200) {
-        const messageId = res.headers.get('x-message-id') || `ms_${Date.now()}`;
-        console.log(`📧 [MailerSend API Success]: Sent "${subject}" to ${recipientEmail} (Id: ${messageId})`);
-        return { success: true, messageId };
-      }
-      const data: any = await res.json().catch(() => ({}));
-      console.warn(`⚠️ [MailerSend API Notice]:`, data);
-    } catch (err: any) {
-      console.warn(`⚠️ [MailerSend API Error]:`, err?.message || err);
-    }
-  }
-
-  // 2. Check Resend API (HTTPS Port 443 - Testing mode limited to account owner email)
+  // 1. Resend API Dispatcher (Primary Production/Dev Transactional Email Provider)
   const resendApiKey = process.env.RESEND_API_KEY;
   if (resendApiKey) {
     try {
