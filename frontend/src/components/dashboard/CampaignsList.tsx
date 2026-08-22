@@ -236,39 +236,28 @@ export default function CampaignsList({ onSelectCampaign, onResumeDraft, onCreat
                 {/* Card Action Footer */}
                 <div className="pt-3 border-t-2 border-black flex items-center justify-between">
                   {isDraft ? (
-                    <>
-                      <button
-                        onClick={() => handleResume(cmp.id)}
-                        className="btn-primary text-xs py-1.5 px-3.5 gap-1.5 flex items-center cursor-pointer font-extrabold"
-                      >
-                        <Play className="w-3.5 h-3.5 fill-current" /> Resume Draft
-                      </button>
-
-                      <button
-                        onClick={() => setConfirmDeleteId(cmp.id)}
-                        className="p-1.5 text-[#5A5A5A] hover:text-[#D64545] transition-colors rounded-lg cursor-pointer"
-                        title="Delete Draft"
-                      >
-                        <Trash2 className="w-4 h-4" />
-                      </button>
-                    </>
+                    <button
+                      onClick={() => handleResume(cmp.id)}
+                      className="btn-primary text-xs py-1.5 px-3.5 gap-1.5 flex items-center cursor-pointer font-extrabold"
+                    >
+                      <Play className="w-3.5 h-3.5 fill-current" /> Resume Draft
+                    </button>
                   ) : (
-                    <>
-                      <button
-                        onClick={() => handleSelect(cmp.id)}
-                        className="btn-secondary text-xs py-1.5 px-3.5 gap-1.5 flex items-center cursor-pointer font-bold"
-                      >
-                        <Eye className="w-3.5 h-3.5 text-[#054048]" /> View Reporting
-                      </button>
-
-                      <button
-                        onClick={() => handleSelect(cmp.id)}
-                        className="text-xs text-[#054048] hover:underline font-extrabold flex items-center gap-1 cursor-pointer"
-                      >
-                        Details &rarr;
-                      </button>
-                    </>
+                    <button
+                      onClick={() => handleSelect(cmp.id)}
+                      className="btn-secondary text-xs py-1.5 px-3.5 gap-1.5 flex items-center cursor-pointer font-bold"
+                    >
+                      <Eye className="w-3.5 h-3.5 text-[#054048]" /> View Analytics
+                    </button>
                   )}
+
+                  <button
+                    onClick={() => setConfirmDeleteId(cmp.id)}
+                    className="p-1.5 text-[#5A5A5A] hover:text-[#D64545] hover:bg-[#FEE2E2] transition-colors rounded-lg cursor-pointer border border-transparent hover:border-black"
+                    title="Delete Campaign"
+                  >
+                    <Trash2 className="w-4 h-4" />
+                  </button>
                 </div>
               </div>
             );

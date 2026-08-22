@@ -278,6 +278,24 @@ export default function CampaignDetailView({ campaignId: propCampaignId, onBack 
           </button>
 
           <button
+            onClick={async () => {
+              if (window.confirm('Are you sure you want to permanently delete this campaign and all its send logs?')) {
+                try {
+                  const res = await apiFetch(`/api/campaigns/${activeCampaignId}`, { method: 'DELETE' });
+                  const d = await res.json();
+                  if (d.success) {
+                    handleBack();
+                  }
+                } catch (e) {}
+              }
+            }}
+            className="btn-secondary py-2 px-4 text-xs font-bold gap-2 flex items-center text-[#D64545] hover:bg-[#FEE2E2] border-2 border-black cursor-pointer"
+          >
+            <AlertTriangle className="w-4 h-4 text-[#D64545]" />
+            Delete Campaign
+          </button>
+
+          <button
             onClick={handleExportCSV}
             className="btn-primary py-2 px-4 text-xs font-black gap-2 flex items-center cursor-pointer"
           >
