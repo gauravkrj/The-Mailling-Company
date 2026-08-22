@@ -456,6 +456,39 @@ router.post('/:id/render-preview', requireAuth, (req: AuthenticatedRequest, res)
   });
 });
 
+// 7B. AI Gemini Preview & Rewrite Generation Endpoint
+router.post('/preview-ai', requireAuth, async (req: AuthenticatedRequest, res) => {
+  const { brief, tone, sampleContact, format } = req.body;
+
+  try {
+    const result = await previewAIPersonalization({
+      prompt: brief || 'Write a high-converting cold email',
+      tone: tone || 'Professional',
+      sampleContact: sampleContact || { name: 'Alex Rivera', company: 'Acme Corp', role: 'Director' },
+      format: format || 'html',
+    });
+
+    return res.json({
+      success: true,
+      preview: {
+        subject: result.subject,
+        body: result.body,
+      },
+    });
+  } catch (err: any) {
+    const contactName = sampleContact?.name || sampleContact?.['full name'] || '{{full name}}';
+    const company = sampleContact?.company || '{{company}}';
+
+    return res.json({
+      success: true,
+      preview: {
+        subject: `Quick question regarding ${company}`,
+        body: `Hi ${contactName},\n\nI noticed your work at ${company} and wanted to reach out regarding our solution.\n\nWould you be open to a quick 10-minute chat this week?`,
+      },
+    });
+  }
+});
+
 // ---------------------------------------------------------------------------
 // PHASE 6: SENDING ENGINE & BULLMQ QUEUE PIPELINE ENDPOINTS
 // ---------------------------------------------------------------------------

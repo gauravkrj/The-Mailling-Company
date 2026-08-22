@@ -4,7 +4,7 @@ import { ILLMProvider, DraftParams, PersonalizeParams, LLMResult } from './llm-p
 export class GeminiProvider implements ILLMProvider {
   name = 'gemini';
   private genAI: GoogleGenerativeAI | null = null;
-  private candidateModels = ['gemini-3.5-flash', 'gemini-3.6-flash', 'gemini-3.7-flash', 'gemini-1.5-flash'];
+  private candidateModels = ['gemini-1.5-flash', 'gemini-2.0-flash', 'gemini-1.5-pro', 'gemini-flash'];
 
   constructor(apiKey?: string) {
     const key = apiKey || process.env.GEMINI_API_KEY;

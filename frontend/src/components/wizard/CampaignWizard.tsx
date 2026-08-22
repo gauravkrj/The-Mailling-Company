@@ -149,10 +149,10 @@ export default function CampaignWizard({ resumingCampaignId, onClose, onCampaign
         try {
           const res = await apiFetch(`/api/campaigns/${campaignId}/analytics`);
           const data = await res.json();
-          if (res.ok && data.success && data.stats) {
-            const stats = data.stats;
+          const stats = data.analytics?.stats || data.stats;
+          if (res.ok && data.success && stats) {
             const processed = (stats.sentCount || 0) + (stats.failedCount || 0);
-            const total = stats.totalContacts || 1;
+            const total = stats.totalContacts || importSummary?.importedCount || 1;
 
             setSendingProgress({
               campaignId: campaignId || '',

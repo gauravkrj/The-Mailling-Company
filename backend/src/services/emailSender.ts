@@ -79,11 +79,17 @@ export async function sendEmailWithProvider(options: SendEmailOptions): Promise<
 
   if (isPlainTextMode) {
     // -----------------------------------------------------------------------
-    // PHASE 5C: PURE PLAIN TEXT SENDING BRANCH (Zero HTML markup/template)
+    // PHASE 5C: PLAIN TEXT SENDING BRANCH WITH FULL TRACKING SUPPORT
     // -----------------------------------------------------------------------
     const rawContent = stripHtml(htmlContent);
-    plainTextBody = `${rawContent}\n\n---\nDon't want these emails? Unsubscribe: ${unsubscribeUrl}`;
-    sanitizedHtml = '';
+    const trackedText = rawContent.replace(/(https?:\/\/[^\s]+)/g, (url) => {
+      if (url.includes('/api/unsubscribe/') || url.includes('/api/track/')) return url;
+      return `${appUrl}/api/track/click/${unsubscribeToken}?url=${encodeURIComponent(url)}`;
+    });
+    plainTextBody = `${trackedText}\n\n---\nDon't want these emails? Unsubscribe: ${unsubscribeUrl}`;
+    
+    const pixelTag = `<img src="${openTrackingUrl}" width="1" height="1" border="0" alt="" style="width:1px;height:1px;border:0;" />`;
+    sanitizedHtml = `${pixelTag}<div style="font-family: monospace; white-space: pre-wrap;">${trackedText}</div>\n\n<p style="font-size:11px;color:#666;">Don't want these emails? <a href="${unsubscribeUrl}">Unsubscribe</a></p>`;
   } else {
     // -----------------------------------------------------------------------
     // RICH HTML SENDING BRANCH (Visual Template Designer Styling)
