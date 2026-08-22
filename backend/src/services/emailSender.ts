@@ -68,7 +68,7 @@ export async function sendEmailWithProvider(options: SendEmailOptions): Promise<
     format = 'html',
   } = options;
 
-  const appUrl = process.env.APP_URL || 'http://localhost:5001';
+  const appUrl = (process.env.APP_URL || 'https://api.themaillingcompany.com').replace(/\/$/, '');
   const unsubscribeUrl = `${appUrl}/api/unsubscribe/${unsubscribeToken}`;
   const openTrackingUrl = `${appUrl}/api/track/open/${unsubscribeToken}`;
 
@@ -97,7 +97,7 @@ export async function sendEmailWithProvider(options: SendEmailOptions): Promise<
     });
 
     const fullHtml = `${trackedHtml}
-<img src="${openTrackingUrl}" width="1" height="1" alt="" style="display:none !important; min-height:1px; min-width:1px;" />
+<img src="${openTrackingUrl}" width="1" height="1" alt="" style="display:block; width:1px; height:1px; opacity:0; border:0;" />
 <table border="0" cellpadding="0" cellspacing="0" width="100%" style="margin-top: 24px; padding-top: 16px; border-top: 1px solid #e5e7eb;">
   <tr>
     <td align="center" style="font-size: 11px; color: #6b7280; font-family: Arial, sans-serif;">

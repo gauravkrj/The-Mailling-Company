@@ -40,16 +40,37 @@ router.get('/:id/analytics', requireAuth, async (req: AuthenticatedRequest, res)
 
       if (campaign) {
         const totalContacts = await prisma.contact.count({ where: { campaign_id: id } });
-        const sentCount = await prisma.sendLog.count({ where: { campaign_id: id, status: 'sent' } });
+        const sentCount = await prisma.sendLog.count({ where: { campaign_id: id, status: { not: 'failed' } } });
         const openedCount = await prisma.sendLog.count({
           where: {
             campaign_id: id,
-            OR: [{ opened_at: { not: null } }, { clicked_at: { not: null } }],
+            OR: [
+              { opened_at: { not: null } },
+              { clicked_at: { not: null } },
+              { status: 'opened' },
+              { status: 'clicked' },
+            ],
           },
         });
-        const clickedCount = await prisma.sendLog.count({ where: { campaign_id: id, clicked_at: { not: null } } });
+        const clickedCount = await prisma.sendLog.count({
+          where: {
+            campaign_id: id,
+            OR: [
+              { clicked_at: { not: null } },
+              { status: 'clicked' },
+            ],
+          },
+        });
         const failedCount = await prisma.sendLog.count({ where: { campaign_id: id, status: 'failed' } });
-        const unsubscribedCount = await prisma.sendLog.count({ where: { campaign_id: id, status: 'suppressed' } });
+        const unsubscribedCount = await prisma.sendLog.count({
+          where: {
+            campaign_id: id,
+            OR: [
+              { status: 'unsubscribed' },
+              { status: 'suppressed' },
+            ],
+          },
+        });
 
         const openRate = sentCount > 0 ? parseFloat(((openedCount / sentCount) * 100).toFixed(1)) : 0;
         const clickRate = sentCount > 0 ? parseFloat(((clickedCount / sentCount) * 100).toFixed(1)) : 0;

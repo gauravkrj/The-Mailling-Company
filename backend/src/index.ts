@@ -137,13 +137,23 @@ const TRANSPARENT_1X1_GIF = Buffer.from(
 
 app.get('/api/track/open/:token', async (req, res) => {
   const { token } = req.params;
+  const now = new Date();
 
   if (isPrismaConnected) {
     try {
-      await prisma.sendLog.updateMany({
+      const sendLog = await prisma.sendLog.findFirst({
         where: { unsubscribe_token: token },
-        data: { opened_at: new Date() },
       });
+      if (sendLog) {
+        const newStatus = sendLog.status === 'sent' ? 'opened' : sendLog.status;
+        await prisma.sendLog.updateMany({
+          where: { unsubscribe_token: token },
+          data: {
+            opened_at: sendLog.opened_at || now,
+            status: newStatus,
+          },
+        });
+      }
     } catch (e) {
       // Fallback
     }
@@ -153,8 +163,9 @@ app.get('/api/track/open/:token', async (req, res) => {
   memorySendLogStore.forEach((logs) => {
     logs.forEach((log) => {
       if (log.unsubscribeToken === token || log.unsubscribe_token === token || log.id === token) {
-        log.openedAt = new Date().toISOString();
-        log.opened_at = new Date().toISOString();
+        log.openedAt = log.openedAt || now.toISOString();
+        log.opened_at = log.opened_at || now.toISOString();
+        if (log.status === 'sent') log.status = 'opened';
       }
     });
   });
@@ -175,11 +186,15 @@ app.get('/api/track/click/:token', async (req, res) => {
 
   if (isPrismaConnected) {
     try {
+      const sendLog = await prisma.sendLog.findFirst({
+        where: { unsubscribe_token: token },
+      });
       await prisma.sendLog.updateMany({
         where: { unsubscribe_token: token },
         data: {
           clicked_at: now,
-          opened_at: now,
+          opened_at: sendLog?.opened_at || now,
+          status: 'clicked',
         },
       });
     } catch (e) {
@@ -195,6 +210,7 @@ app.get('/api/track/click/:token', async (req, res) => {
         log.opened_at = log.opened_at || log.openedAt || now.toISOString();
         log.clickedAt = now.toISOString();
         log.clicked_at = now.toISOString();
+        log.status = 'clicked';
       }
     });
   });
@@ -220,7 +236,10 @@ app.get('/api/unsubscribe/:token', async (req, res) => {
         unsubscribedEmail = sendLog.contact.email;
         await prisma.sendLog.updateMany({
           where: { unsubscribe_token: token },
-          data: { opened_at: sendLog.opened_at || now },
+          data: {
+            opened_at: sendLog.opened_at || now,
+            status: 'unsubscribed',
+          },
         });
 
         await prisma.suppressionList.upsert({
