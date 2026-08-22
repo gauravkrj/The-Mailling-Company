@@ -11,12 +11,10 @@ export interface RenderEmailOptions {
  * Reusable Email-Client-Safe HTML Template Renderer (Phase 5A Requirement)
  * Generates table-based HTML with inline CSS compatible with Outlook, Gmail, Apple Mail, Yahoo.
  */
-export function renderEmailHtml(options: RenderEmailOptions): string {
-  const { bodyContent, design, contactData, plainSignature } = options;
+export function replaceCanonicalTags(text: string, contactData?: Record<string, any>): string {
+  if (!text) return '';
+  let processed = text;
 
-  let processedBody = bodyContent || '';
-
-  // 1. Canonical Fixed Tag Replacement & Legacy Alias Substitution (Phase 13D Requirement)
   if (contactData) {
     const emailVal = contactData.email || '';
     const fullNameVal =
@@ -43,7 +41,7 @@ export function renderEmailHtml(options: RenderEmailOptions): string {
     const attr5 = contactData.attribute_5 || contactData['attribute_5'] || '';
 
     // Replace canonical tags and aliases
-    processedBody = processedBody
+    processed = processed
       .replace(/\{\{\s*email\s*\}\}/gi, emailVal)
       .replace(/\{\{\s*(full_name|full\s*name|name|contact_name|fullname|first_name)\s*\}\}/gi, fullNameVal)
       .replace(/\{\{\s*(company|organization|company_name|org|company\s*name)\s*\}\}/gi, companyVal)
@@ -59,17 +57,27 @@ export function renderEmailHtml(options: RenderEmailOptions): string {
       Object.entries(contactData.custom_fields).forEach(([k, v]) => {
         if (v !== null && v !== undefined) {
           const escapedK = k.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-          processedBody = processedBody.replace(new RegExp(`\\{\\{\\s*${escapedK}\\s*\\}\\}`, 'gi'), String(v));
+          processed = processed.replace(new RegExp(`\\{\\{\\s*${escapedK}\\s*\\}\\}`, 'gi'), String(v));
         }
       });
     }
   }
 
-  // Strip any unmapped/absent tags remaining in {{...}} to empty string (Phase 13D Requirement: never show undefined/null)
-  processedBody = processedBody.replace(/\{\{\s*[\w.-]+\s*\}\}/g, '');
+  // Strip raw square bracket placeholders if any remain
+  processed = processed.replace(/\[\s*(your\s*name|name|my\s*name|insert\s*name)\s*\]/gi, '');
 
-  // Strip raw square bracket tags if any remain
-  processedBody = processedBody.replace(/\[\s*(your\s*name|name|my\s*name|insert\s*name)\s*\]/gi, '');
+  return processed;
+}
+
+/**
+ * Reusable Email-Client-Safe HTML Template Renderer (Phase 5A Requirement)
+ * Generates table-based HTML with inline CSS compatible with Outlook, Gmail, Apple Mail, Yahoo.
+ */
+export function renderEmailHtml(options: RenderEmailOptions): string {
+  const { bodyContent, design, contactData, plainSignature } = options;
+
+  const processedBody = replaceCanonicalTags(bodyContent || '', contactData);
+  const processedSignature = replaceCanonicalTags(plainSignature || '', contactData);
 
   // Design tokens & options
   const logoUrl = design?.logo_url || '';
@@ -83,7 +91,7 @@ export function renderEmailHtml(options: RenderEmailOptions): string {
   const accentColor = design?.accent_color || '#7B2038';
   const fontFamily = design?.font_family || 'Arial, Helvetica, sans-serif';
   const signatureHtml = design?.signature_html || '';
-  const finalSignature = signatureHtml || (plainSignature ? plainSignature.trim().replace(/\n/g, '<br/>') : '');
+  const finalSignature = signatureHtml || (processedSignature ? processedSignature.trim().replace(/\n/g, '<br/>') : '');
 
   // Button design options
   const ctaText = design?.cta_button_text || '';

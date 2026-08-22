@@ -1088,6 +1088,42 @@ export default function CampaignWizard({ resumingCampaignId, onClose, onCampaign
                 </div>
               )}
 
+              {/* Integrated Gemini AI Subject & Body Drafting Section (Placed ABOVE Subject Line) */}
+              {mode === 'fixed_template' && (
+                <div className="bg-[#FEF6EA] border-2 border-black rounded-xl p-4 space-y-3 shadow-sm">
+                  <div className="flex items-center justify-between">
+                    <span className="font-extrabold text-xs text-[#054048] flex items-center gap-1.5">
+                      <Sparkles className="w-4 h-4 text-[#054048]" /> Draft Subject & Body using Gemini LLM
+                    </span>
+                    <span className="text-[11px] text-[#5A5A5A] font-semibold">Press Enter or click button to re-generate anytime</span>
+                  </div>
+                  <div className="flex flex-col sm:flex-row gap-2">
+                    <input
+                      type="text"
+                      value={aiBrief}
+                      onChange={(e) => setAiBrief(e.target.value)}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter') {
+                          e.preventDefault();
+                          if (aiBrief.trim() && !generatingDraft) handleGenerateAISample();
+                        }
+                      }}
+                      placeholder="E.g. Pitch email introducing our SaaS to marketing managers, friendly but professional..."
+                      className="input-field text-xs bg-white flex-1"
+                    />
+                    <button
+                      type="button"
+                      onClick={handleGenerateAISample}
+                      disabled={generatingDraft || !aiBrief.trim()}
+                      className="btn-primary py-2 px-4 text-xs font-extrabold gap-1.5 flex items-center justify-center shrink-0 cursor-pointer"
+                    >
+                      <Sparkles className="w-3.5 h-3.5" />
+                      {generatingDraft ? 'Drafting with Gemini...' : 'Draft Email using Gemini'}
+                    </button>
+                  </div>
+                </div>
+              )}
+
               {/* Subject Line Input */}
               <div className="space-y-1.5">
                 <label className="text-xs font-bold text-[#1A1A1A]">Subject Line *</label>
@@ -1154,43 +1190,8 @@ export default function CampaignWizard({ resumingCampaignId, onClose, onCampaign
                   )}
                 </div>
               ) : (
-                <div className="space-y-3">
-                  {/* Integrated Gemini AI Subject & Body Drafting Section */}
-                  <div className="bg-[#FEF6EA] border-2 border-black rounded-xl p-4 space-y-3 shadow-sm">
-                    <div className="flex items-center justify-between">
-                      <span className="font-extrabold text-xs text-[#054048] flex items-center gap-1.5">
-                        <Sparkles className="w-4 h-4 text-[#054048]" /> Draft Subject & Body using Gemini LLM
-                      </span>
-                      <span className="text-[11px] text-[#5A5A5A] font-semibold">Press Enter or click button to re-generate anytime</span>
-                    </div>
-                    <div className="flex flex-col sm:flex-row gap-2">
-                      <input
-                        type="text"
-                        value={aiBrief}
-                        onChange={(e) => setAiBrief(e.target.value)}
-                        onKeyDown={(e) => {
-                          if (e.key === 'Enter') {
-                            e.preventDefault();
-                            if (aiBrief.trim() && !generatingDraft) handleGenerateAISample();
-                          }
-                        }}
-                        placeholder="E.g. Pitch email introducing our SaaS to marketing managers, friendly but professional..."
-                        className="input-field text-xs bg-white flex-1"
-                      />
-                      <button
-                        type="button"
-                        onClick={handleGenerateAISample}
-                        disabled={generatingDraft || !aiBrief.trim()}
-                        className="btn-primary py-2 px-4 text-xs font-extrabold gap-1.5 flex items-center justify-center shrink-0 cursor-pointer"
-                      >
-                        <Sparkles className="w-3.5 h-3.5" />
-                        {generatingDraft ? 'Drafting with Gemini...' : 'Draft Email using Gemini'}
-                      </button>
-                    </div>
-                  </div>
-
-                  <label className="text-xs font-bold text-[#1A1A1A] block">Email Body Template *</label>
-
+                <div className="space-y-1.5">
+                  <label className="text-xs font-bold text-[#1A1A1A]">Email Body Template *</label>
                   <textarea
                     ref={bodyTextareaRef}
                     value={bodyTemplate}

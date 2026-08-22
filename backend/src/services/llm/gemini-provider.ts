@@ -27,19 +27,22 @@ Available sheet placeholder tags: ${colList}
 Target Email Format: ${isPlainText ? 'Plain Text (no HTML formatting, no bold/italics markdown, natural personal 1-to-1 conversational style)' : 'Rich HTML'}
 
 Instructions:
-1. Write a high-converting cold email subject line using placeholders like {{company}} or {{full name}}.
-2. Write a professional cold email body template containing placeholders like {{full name}}, {{company}}, and {{role}}.
+1. Write a high-converting cold email subject line using placeholders like {{company}} or {{full_name}}.
+2. Write a professional cold email body template containing placeholders like {{full_name}}, {{company}}, and {{role}}.
 3. ${isPlainText ? 'STRICTLY write in simple, direct human plain text without any HTML tags or markdown formatting.' : 'Write clean, persuasive email body copy.'}
-4. DO NOT output square bracket placeholders like [Your Name], [Name], or [My Name]. End the email body signature naturally.
+4. DO NOT include any closing sign-off (such as "Best regards,", "Sincerely,", "Thanks,") or signature lines at the end of the email body copy, because a dedicated signature block will be appended automatically. End the body content right at your call-to-action question.
 5. Output ONLY a valid JSON object with exact keys "subject" and "body". Do not include markdown code block formatting or extra text.
 
 JSON format example:
-{"subject": "Quick question regarding {{company}}", "body": "Hi {{full name}},\\n\\nI noticed your work as {{role}} at {{company}}..."}`;
+{"subject": "Quick question regarding {{company}}", "body": "Hi {{full_name}},\\n\\nI noticed your work as {{role}} at {{company}}..."}`;
 
     let lastError: any = null;
     for (const modelName of this.candidateModels) {
       try {
-        const model = this.genAI.getGenerativeModel({ model: modelName });
+        const model = this.genAI.getGenerativeModel({
+          model: modelName,
+          generationConfig: { temperature: 0.85 },
+        });
         const result = await model.generateContent(prompt);
         const text = result.response.text();
         return this.parseJSONResponse(text, params.prompt);
@@ -80,7 +83,10 @@ JSON format example:
     let lastError: any = null;
     for (const modelName of this.candidateModels) {
       try {
-        const model = this.genAI.getGenerativeModel({ model: modelName });
+        const model = this.genAI.getGenerativeModel({
+          model: modelName,
+          generationConfig: { temperature: 0.85 },
+        });
         const result = await model.generateContent(prompt);
         const text = result.response.text();
         return this.parseJSONResponse(text, params.prompt || 'Personalized email', isPlainText);
