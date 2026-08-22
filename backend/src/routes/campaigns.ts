@@ -704,13 +704,36 @@ router.post('/:id/cancel', requireAuth, async (req: AuthenticatedRequest, res) =
     }
   }
 
-  const memoryCmp = memoryCampaignStore.get(id);
-  if (memoryCmp) memoryCmp.status = 'cancelled';
-
   return res.json({
     success: true,
     message: 'Campaign sending cancelled.',
     status: 'cancelled',
+  });
+});
+
+// 13. Delete Campaign Endpoint
+router.delete('/:id', requireAuth, async (req: AuthenticatedRequest, res) => {
+  const { id } = req.params;
+
+  if (isPrismaConnected) {
+    try {
+      await prisma.sendLog.deleteMany({ where: { campaign_id: id } });
+      await prisma.contact.deleteMany({ where: { campaign_id: id } });
+      await prisma.emailDraft.deleteMany({ where: { campaign_id: id } });
+      await prisma.emailDesign.deleteMany({ where: { campaign_id: id } });
+      await prisma.campaign.delete({ where: { id } });
+    } catch (e) {
+      console.error('Failed to delete campaign from database:', e);
+    }
+  }
+
+  memoryCampaignStore.delete(id);
+  memoryDraftStore.delete(id);
+  memoryDesignStore.delete(id);
+
+  return res.json({
+    success: true,
+    message: 'Campaign deleted successfully!',
   });
 });
 
