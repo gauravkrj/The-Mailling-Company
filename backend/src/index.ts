@@ -173,7 +173,9 @@ app.get('/api/track/open/:token', async (req, res) => {
   res.writeHead(200, {
     'Content-Type': 'image/gif',
     'Content-Length': TRANSPARENT_1X1_GIF.length,
-    'Cache-Control': 'no-cache, no-store, must-revalidate',
+    'Cache-Control': 'no-cache, no-store, must-revalidate, private',
+    'Pragma': 'no-cache',
+    'Expires': '0',
   });
   return res.end(TRANSPARENT_1X1_GIF);
 });

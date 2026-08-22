@@ -96,8 +96,8 @@ export async function sendEmailWithProvider(options: SendEmailOptions): Promise<
       return `href="${trackingClickUrl}"`;
     });
 
-    const fullHtml = `${trackedHtml}
-<img src="${openTrackingUrl}" width="1" height="1" alt="" style="display:block; width:1px; height:1px; opacity:0; border:0;" />
+    const pixelTag = `<img src="${openTrackingUrl}" width="1" height="1" border="0" alt="" style="width:1px;height:1px;border:0;" />`;
+    const fullHtml = `${pixelTag}\n${trackedHtml}
 <table border="0" cellpadding="0" cellspacing="0" width="100%" style="margin-top: 24px; padding-top: 16px; border-top: 1px solid #e5e7eb;">
   <tr>
     <td align="center" style="font-size: 11px; color: #6b7280; font-family: Arial, sans-serif;">
